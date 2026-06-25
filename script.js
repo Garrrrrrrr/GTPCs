@@ -60,6 +60,8 @@
       "/product/index.html": "/product/",
       "/request.html": "/request/",
       "/request/index.html": "/request/",
+      "/repair.html": "/repair/",
+      "/repair/index.html": "/repair/",
       "/about.html": "/about/",
       "/about/index.html": "/about/",
       "/privacy.html": "/privacy/",
