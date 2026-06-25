@@ -2,6 +2,12 @@
 
 This folder contains the Google Apps Script used to turn GTPCS Google Form submissions into ticket notifications and a manual order tracking workflow.
 
+Use the public `GTPCS Purchase Request` Google Form for website requests:
+
+`https://forms.gle/6ZjVyjMfxCoT7g6G9`
+
+Do not embed or publicly link the internal inventory/product uploader form. That form is for GTPCS product management only.
+
 ## Setup
 
 1. Go to https://script.new
