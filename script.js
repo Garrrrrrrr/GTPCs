@@ -658,6 +658,8 @@
     var confirmationTimer = null;
     var frameFallbackTimer = null;
     var activeJsonpScript = null;
+    var activeRequestId = "";
+    var fallbackInProgress = false;
 
     if (message && (item || sku)) {
       message.textContent = "You are requesting: " + [item, sku].filter(Boolean).join(" - ");
@@ -698,6 +700,8 @@
       setFieldValue("page-url", window.location.href);
       setFieldValue("user-agent", window.navigator.userAgent);
       setFieldValue("form-token", window.CONFIG && CONFIG.requestFormToken ? CONFIG.requestFormToken : "");
+      activeRequestId = buildRequestId();
+      fallbackInProgress = false;
       hideSubmissionFrame();
       submitted = true;
       if (submit) submit.disabled = true;
@@ -724,7 +728,7 @@
       submitRequestWithJsonp(form, webAppUrl)
         .then(handleRequestResult)
         .catch(function () {
-          handleRequestResult({ ok: false, error: "The request could not reach GTPCS ticket tracking." });
+          submitRequestWithFallbackFrame(form, webAppUrl);
         });
     });
 
@@ -754,6 +758,20 @@
     if (frame) {
       frame.addEventListener("load", function () {
         if (!submitted) return;
+
+        if (fallbackInProgress) {
+          window.clearTimeout(confirmationTimer);
+          window.clearTimeout(frameFallbackTimer);
+          if (status) {
+            status.textContent = "Request sent through fallback submission. Check the response below for the ticket result.";
+            status.classList.remove("notice-warning");
+          }
+          showSubmissionFrame();
+          if (submit) submit.disabled = false;
+          submitted = false;
+          fallbackInProgress = false;
+          return;
+        }
 
         window.clearTimeout(frameFallbackTimer);
         frameFallbackTimer = window.setTimeout(function () {
@@ -787,6 +805,7 @@
 
         requestUrl.searchParams.set("action", "submit");
         requestUrl.searchParams.set("callback", callbackName);
+        requestUrl.searchParams.set("request_id", activeRequestId);
         requestUrl.searchParams.set("_", String(Date.now()));
         formData.forEach(function (value, key) {
           requestUrl.searchParams.set(key, value);
@@ -820,6 +839,31 @@
 
         document.head.appendChild(activeJsonpScript);
       });
+    }
+
+    function submitRequestWithFallbackFrame(formElement, actionUrl) {
+      if (!frame) {
+        handleRequestResult({ ok: false, error: "The request could not reach GTPCS ticket tracking." });
+        return;
+      }
+
+      var requestUrl = new URL(actionUrl);
+      var formData = new FormData(formElement);
+
+      requestUrl.searchParams.set("action", "submit");
+      requestUrl.searchParams.set("response", "html");
+      requestUrl.searchParams.set("request_id", activeRequestId);
+      requestUrl.searchParams.set("_", String(Date.now()));
+      formData.forEach(function (value, key) {
+        requestUrl.searchParams.set(key, value);
+      });
+
+      fallbackInProgress = true;
+      if (status) {
+        status.textContent = "Direct confirmation was blocked by the browser. Sending through fallback...";
+        status.classList.add("notice-warning");
+      }
+      frame.src = requestUrl.toString();
     }
 
     function handleRequestResult(data) {
@@ -857,6 +901,13 @@
       setFieldValue("page-url", window.location.href);
       setFieldValue("user-agent", window.navigator.userAgent);
       setFieldValue("form-token", window.CONFIG && CONFIG.requestFormToken ? CONFIG.requestFormToken : "");
+    }
+
+    function buildRequestId() {
+      if (window.crypto && window.crypto.randomUUID) {
+        return window.crypto.randomUUID();
+      }
+      return "gtpcs-" + Date.now() + "-" + Math.floor(Math.random() * 1000000);
     }
   }
 

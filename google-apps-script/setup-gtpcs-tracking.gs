@@ -21,7 +21,11 @@ function doGet(e) {
   const params = e && e.parameter ? e.parameter : {};
 
   if (cleanParam_(params.action) === "submit") {
-    return jsonpResponse_(params, processWebTicketWithLock_(params));
+    const data = processWebTicketWithLock_(params);
+    if (cleanParam_(params.response) === "html") {
+      return htmlResponse_(data);
+    }
+    return jsonpResponse_(params, data);
   }
 
   return HtmlService
@@ -49,6 +53,9 @@ function processWebTicketWithLock_(params) {
 }
 
 function processWebTicket_(params) {
+  const cachedResult = getCachedRequestResult_(params);
+  if (cachedResult) return cachedResult;
+
   const validationError = validateWebTicket_(params);
   if (validationError) {
     logWebTicketError_(params, validationError);
@@ -77,7 +84,9 @@ function processWebTicket_(params) {
 
   SpreadsheetApp.flush();
 
-  return { ok: true, ticketId };
+  const result = { ok: true, ticketId };
+  cacheRequestResult_(params, result);
+  return result;
 }
 
 function getTicketSpreadsheet_() {
@@ -190,6 +199,26 @@ function recordRateLimit_(key) {
   const raw = cache.get(cacheKey);
   const count = raw ? Number(raw) : 0;
   cache.put(cacheKey, String(count + 1), RATE_LIMIT_SECONDS);
+}
+
+function getCachedRequestResult_(params) {
+  const requestId = cleanParam_(params.request_id);
+  if (!requestId) return null;
+
+  const raw = CacheService.getScriptCache().get(`request:${requestId}`);
+  if (!raw) return null;
+
+  try {
+    return JSON.parse(raw);
+  } catch (error) {
+    return null;
+  }
+}
+
+function cacheRequestResult_(params, result) {
+  const requestId = cleanParam_(params.request_id);
+  if (!requestId || !result || !result.ok) return;
+  CacheService.getScriptCache().put(`request:${requestId}`, JSON.stringify(result), 21600);
 }
 
 function htmlResponse_(data) {
