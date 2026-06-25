@@ -35,10 +35,10 @@
       <p>Submit this form and we'll get back to you by email. High-value orders are manually reviewed before finalizing.</p>
       <p id="requested-item-message" class="notice" hidden></p>
 
-      <form id="request-form" class="request-form" method="POST" target="request-submit-frame">
+      <form id="request-form" class="request-form" method="POST" action="https://script.google.com/macros/s/AKfycbzJWqsrZf9GL6UQffI1UzG5ZhgYFIlAVyT06ghNLYDhSMs78rbcccbhAat97oF-Bi86fA/exec" target="request-submit-frame">
         <input type="hidden" id="page-url" name="page_url">
         <input type="hidden" id="user-agent" name="user_agent">
-        <input type="hidden" id="form-token" name="form_token">
+        <input type="hidden" id="form-token" name="form_token" value="gtpcs-public-request-v1">
         <div class="hp-field" aria-hidden="true">
           <label for="company-website">Company website</label>
           <input id="company-website" name="company_website" type="text" tabindex="-1" autocomplete="off">
@@ -65,7 +65,7 @@
 
           <div class="field">
             <label for="customer-name">Name</label>
-            <input id="customer-name" name="name" type="text" autocomplete="name" required>
+            <input id="customer-name" name="name" type="text" autocomplete="name" maxlength="120" required>
           </div>
 
           <div class="field">
@@ -90,7 +90,7 @@
 
           <div class="field field-wide">
             <label for="request-message">Message</label>
-            <textarea id="request-message" name="message" rows="7" placeholder="Tell us what you want to buy, what needs repair, or what question you have." required></textarea>
+            <textarea id="request-message" name="message" rows="7" minlength="8" maxlength="4000" placeholder="Tell us what you want to buy, what needs repair, or what question you have." required></textarea>
           </div>
         </div>
 
