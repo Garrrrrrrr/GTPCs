@@ -96,6 +96,23 @@ function resetGTPCSInventoryDatabaseBlank() {
   SpreadsheetApp.flush();
 }
 
+function restoreGTPCSInventoryDatabaseFromLatestBackup() {
+  const ss = SpreadsheetApp.openById(INVENTORY_SPREADSHEET_ID);
+  const sheet = getInventorySheet_(ss);
+  const backup = findLatestInventoryBackupWithRows_(ss);
+
+  if (!backup) {
+    throw new Error("No inventory backup tab with recoverable rows was found.");
+  }
+
+  const backupRows = readExistingInventoryRows_(backup);
+
+  backupSheet_(ss, sheet);
+  rebuildInventorySheet_(sheet, backupRows);
+
+  SpreadsheetApp.flush();
+}
+
 function getInventorySheet_(ss) {
   let sheet = ss.getSheetById(INVENTORY_SHEET_GID);
 
@@ -150,7 +167,7 @@ function rebuildInventorySheet_(sheet, rows) {
   sheet.clear();
 
   if (sheet.getMaxColumns() > INVENTORY_HEADERS.length) {
-    sheet.deleteColumns(INVENTORY_HEADERS.length + 1, sheet.getMaxColumns() - INVENTORY_HEADERS.length);
+    clearAndHideExtraColumns_(sheet, INVENTORY_HEADERS.length);
   }
 
   sheet.getRange(1, 1, 1, INVENTORY_HEADERS.length).setValues([INVENTORY_HEADERS]);
@@ -163,6 +180,19 @@ function rebuildInventorySheet_(sheet, rows) {
   styleInventorySheet_(sheet);
   applyInventoryValidations_(sheet);
   applyInventoryFormats_(sheet);
+}
+
+function clearAndHideExtraColumns_(sheet, firstExtraColumn) {
+  const extraColumnCount = sheet.getMaxColumns() - firstExtraColumn;
+  if (extraColumnCount <= 0) return;
+
+  sheet.getRange(1, firstExtraColumn + 1, sheet.getMaxRows(), extraColumnCount)
+    .clearContent()
+    .clearFormat()
+    .clearDataValidations();
+
+  sheet.showColumns(1, firstExtraColumn);
+  sheet.hideColumns(firstExtraColumn + 1, extraColumnCount);
 }
 
 function styleInventorySheet_(sheet) {
@@ -265,6 +295,18 @@ function backupSheet_(ss, sourceSheet) {
   const backup = sourceSheet.copyTo(ss);
   const timestamp = Utilities.formatDate(new Date(), ss.getSpreadsheetTimeZone(), "yyyyMMdd-HHmmss");
   backup.setName(`Backup ${sourceSheet.getName()} ${timestamp}`);
+}
+
+function findLatestInventoryBackupWithRows_(ss) {
+  return ss.getSheets()
+    .filter(sheet => /^Backup .+ \d{8}-\d{6}$/.test(sheet.getName()))
+    .filter(sheet => readExistingInventoryRows_(sheet).length > 0)
+    .sort((a, b) => backupTimestamp_(b.getName()).localeCompare(backupTimestamp_(a.getName())))[0] || null;
+}
+
+function backupTimestamp_(name) {
+  const match = name.match(/(\d{8}-\d{6})$/);
+  return match ? match[1] : "";
 }
 
 function canonicalInventoryHeader_(header) {

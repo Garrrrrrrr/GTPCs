@@ -60,6 +60,18 @@ It will:
 - Rebuild the expected headers, formatting, dropdowns, and date/price formats.
 - Preserve existing product rows when their columns can be matched by header name.
 
+If a previous reset failed with `Cannot delete column with form data`, use the latest version of the script and run the restore function below. The failed run should have created a backup tab before it changed the active sheet.
+
+```js
+restoreGTPCSInventoryDatabaseFromLatestBackup()
+```
+
+It will:
+
+- Find the newest backup tab with recoverable inventory rows.
+- Back up the current active inventory tab again.
+- Restore the inventory structure and rows from that backup.
+
 ## Blank Reset
 
 Only use this if the sheet data is unusable and you want a clean empty inventory tab.
@@ -92,3 +104,4 @@ It will:
 - It does not send email.
 - It does not expose buyer information.
 - The backup tab is kept in the spreadsheet so you can manually recover any data if needed.
+- The script does not delete extra form-linked columns. It clears and hides them because Google Sheets blocks deleting columns that contain form response data.
