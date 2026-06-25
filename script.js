@@ -621,7 +621,7 @@
       event.preventDefault();
 
       var item = fieldValue("request-item") || "Inventory item";
-      var email = window.CONFIG && CONFIG.contactEmail ? CONFIG.contactEmail : "sales@gtpcs.ca";
+      var email = window.CONFIG && CONFIG.contactEmail ? CONFIG.contactEmail : "gtpcca@gmail.com";
       var subject = "Purchase Request - " + item;
       var lines = [
         "Purchase request from GTPCS.ca",
