@@ -696,6 +696,7 @@
       setFieldValue("page-url", window.location.href);
       setFieldValue("user-agent", window.navigator.userAgent);
       setFieldValue("form-token", window.CONFIG && CONFIG.requestFormToken ? CONFIG.requestFormToken : "");
+      hideSubmissionFrame();
       submitted = true;
       if (submit) submit.disabled = true;
       if (status) {
@@ -709,9 +710,10 @@
         if (!submitted) return;
 
         if (status) {
-          status.textContent = "Submission loaded, but the site did not receive a ticket confirmation. Check the ticket sheet before trying again.";
+          status.textContent = "Submission loaded, but the site did not receive a ticket confirmation. Check the response below before trying again.";
           status.classList.add("notice-warning");
         }
+        showSubmissionFrame();
         if (submit) submit.disabled = false;
         submitted = false;
       }, 30000);
@@ -723,6 +725,7 @@
 
       window.clearTimeout(confirmationTimer);
       window.clearTimeout(frameFallbackTimer);
+      hideSubmissionFrame();
 
       if (status) {
         status.textContent = data.ok
@@ -749,13 +752,22 @@
 
           window.clearTimeout(confirmationTimer);
           if (status) {
-            status.textContent = "Submission loaded, but the site did not receive a ticket confirmation. Check the ticket sheet before trying again.";
+            status.textContent = "Submission loaded, but the site did not receive a ticket confirmation. Check the response below before trying again.";
             status.classList.add("notice-warning");
           }
+          showSubmissionFrame();
           if (submit) submit.disabled = false;
           submitted = false;
         }, 1200);
       });
+    }
+
+    function hideSubmissionFrame() {
+      if (frame) frame.hidden = true;
+    }
+
+    function showSubmissionFrame() {
+      if (frame) frame.hidden = false;
     }
 
     function resetRequestForm() {

@@ -31,11 +31,13 @@ function doPost(e) {
     const params = e && e.parameter ? e.parameter : {};
     const validationError = validateWebTicket_(params);
     if (validationError) {
+      logWebTicketError_(params, validationError);
       return htmlResponse_({ ok: false, error: validationError });
     }
 
     const rateLimitKey = buildRateLimitKey_(params);
     if (isRateLimited_(rateLimitKey)) {
+      logWebTicketError_(params, "Too many requests. Please try again later.");
       return htmlResponse_({ ok: false, error: "Too many requests. Please try again later." });
     }
 
@@ -56,7 +58,9 @@ function doPost(e) {
 
     return htmlResponse_({ ok: true, ticketId });
   } catch (error) {
-    return htmlResponse_({ ok: false, error: String(error && error.message ? error.message : error) });
+    const errorMessage = String(error && error.message ? error.message : error);
+    logWebTicketError_(e && e.parameter ? e.parameter : {}, errorMessage);
+    return htmlResponse_({ ok: false, error: errorMessage });
   } finally {
     lock.releaseLock();
   }
@@ -215,6 +219,49 @@ function buildWebTicketValues_(params, ticketId) {
     "Internal Notes": "",
     "Linked Order ID": ""
   };
+}
+
+function logWebTicketError_(params, errorMessage) {
+  try {
+    const ss = getTicketSpreadsheet_();
+    const sheet = getOrCreateSheet_(ss, "Request Errors");
+    const headers = [
+      "Timestamp",
+      "Error",
+      "Request Type",
+      "Name",
+      "Email",
+      "Phone",
+      "Item/SKU",
+      "Item Requested",
+      "Pickup or Shipping",
+      "Message",
+      "Page URL",
+      "User Agent",
+      "Honeypot Filled"
+    ];
+
+    ensureHeaders_(sheet, headers);
+    styleHeader_(sheet);
+
+    sheet.appendRow([
+      new Date(),
+      errorMessage,
+      cleanParam_(params.request_type),
+      cleanParam_(params.name),
+      cleanParam_(params.email),
+      cleanParam_(params.phone),
+      cleanParam_(params.sku),
+      cleanParam_(params.item_name),
+      cleanParam_(params.handoff),
+      cleanParam_(params.message),
+      cleanParam_(params.page_url),
+      cleanParam_(params.user_agent),
+      cleanParam_(params.company_website) ? "Yes" : "No"
+    ]);
+  } catch (logError) {
+    console.error(logError);
+  }
 }
 
 function setRowValuesByHeader_(sheet, row, valuesByHeader) {
