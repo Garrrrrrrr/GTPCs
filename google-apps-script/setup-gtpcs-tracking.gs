@@ -31,12 +31,12 @@ function doPost(e) {
     const params = e && e.parameter ? e.parameter : {};
     const validationError = validateWebTicket_(params);
     if (validationError) {
-      return jsonResponse_({ ok: false, error: validationError });
+      return htmlResponse_({ ok: false, error: validationError });
     }
 
     const rateLimitKey = buildRateLimitKey_(params);
     if (isRateLimited_(rateLimitKey)) {
-      return jsonResponse_({ ok: false, error: "Too many requests. Please try again later." });
+      return htmlResponse_({ ok: false, error: "Too many requests. Please try again later." });
     }
 
     const ss = getTicketSpreadsheet_();
@@ -54,9 +54,9 @@ function doPost(e) {
 
     SpreadsheetApp.flush();
 
-    return jsonResponse_({ ok: true, ticketId });
+    return htmlResponse_({ ok: true, ticketId });
   } catch (error) {
-    return jsonResponse_({ ok: false, error: String(error && error.message ? error.message : error) });
+    return htmlResponse_({ ok: false, error: String(error && error.message ? error.message : error) });
   } finally {
     lock.releaseLock();
   }
@@ -174,10 +174,23 @@ function recordRateLimit_(key) {
   cache.put(cacheKey, String(count + 1), RATE_LIMIT_SECONDS);
 }
 
-function jsonResponse_(data) {
-  return ContentService
-    .createTextOutput(JSON.stringify(data))
-    .setMimeType(ContentService.MimeType.JSON);
+function htmlResponse_(data) {
+  const payload = JSON.stringify(Object.assign({ source: "gtpcs-request-form" }, data)).replace(/</g, "\\u003c");
+  const message = data.ok
+    ? `Request received. Ticket ID: ${escapeHtml_(data.ticketId)}`
+    : `Request failed: ${escapeHtml_(data.error)}`;
+
+  return HtmlService
+    .createHtmlOutput(`<!doctype html>
+<html>
+<body>
+  <p>${message}</p>
+  <script>
+    window.parent.postMessage(${payload}, "*");
+  </script>
+</body>
+</html>`)
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
 function buildWebTicketValues_(params, ticketId) {

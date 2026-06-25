@@ -646,9 +646,9 @@
     var form = document.getElementById("request-form");
     var status = document.getElementById("request-form-status");
     var submit = document.getElementById("request-submit");
-    var frame = document.getElementById("request-submit-frame");
     var webAppUrl = window.CONFIG && CONFIG.appsScriptWebAppUrl ? CONFIG.appsScriptWebAppUrl : "";
     var hasWebAppUrl = webAppUrl && !/^PASTE_/i.test(webAppUrl);
+    var confirmationTimer = null;
 
     if (message && (item || sku)) {
       message.textContent = "You are requesting: " + [item, sku].filter(Boolean).join(" - ");
@@ -690,23 +690,43 @@
         status.textContent = "Submitting request...";
         status.classList.remove("notice-warning");
       }
-    });
 
-    if (frame) {
-      frame.addEventListener("load", function () {
+      window.clearTimeout(confirmationTimer);
+      confirmationTimer = window.setTimeout(function () {
         if (!submitted) return;
 
         if (status) {
-          status.textContent = "Request submitted. GTPCS will review it and reply by email.";
+          status.textContent = "Request could not be confirmed. Check the Apps Script Web App deployment URL and try again.";
+          status.classList.add("notice-warning");
         }
+        if (submit) submit.disabled = false;
+        submitted = false;
+      }, 15000);
+    });
+
+    window.addEventListener("message", function (event) {
+      var data = event.data || {};
+      if (!data || data.source !== "gtpcs-request-form" || !submitted) return;
+
+      window.clearTimeout(confirmationTimer);
+
+      if (status) {
+        status.textContent = data.ok
+          ? "Request submitted. GTPCS will review it and reply by email."
+          : "Request failed: " + (data.error || "Please check the form and try again.");
+        status.classList.toggle("notice-warning", !data.ok);
+      }
+
+      if (data.ok) {
         form.reset();
         setFieldValue("page-url", window.location.href);
         setFieldValue("user-agent", window.navigator.userAgent);
         setFieldValue("form-token", window.CONFIG && CONFIG.requestFormToken ? CONFIG.requestFormToken : "");
-        if (submit) submit.disabled = false;
-        submitted = false;
-      });
-    }
+      }
+
+      if (submit) submit.disabled = false;
+      submitted = false;
+    });
   }
 
   function setFieldValue(id, value) {

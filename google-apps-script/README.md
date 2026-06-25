@@ -55,15 +55,24 @@ appsScriptWebAppUrl: "PASTE_DEPLOYED_APPS_SCRIPT_WEB_APP_URL_HERE"
 
 with the deployed Web App URL.
 
-14. Confirm the `PUBLIC_FORM_TOKEN` in Apps Script matches `requestFormToken` in website `config.js`.
-15. Submit a test request through `https://gtpcs.ca/request/`.
-16. Confirm that `gtpcca@gmail.com` receives an email.
-17. Confirm that the response row appears in the purchase request sheet, not the inventory sheet.
-18. Confirm that the response row gets `Ticket ID` and `Ticket Status = New`.
+14. Open the deployed Web App URL in a browser. It should say:
+
+```txt
+GTPCS Ticket System is running for spreadsheet 1IAUdWy1FdKKoTHgMCI11Kr9Ic73Vq9Skdc2vSLwxOSI.
+```
+
+If it shows a Google `Page Not Found`, permissions error, or the wrong spreadsheet ID, the website will not submit requests correctly.
+
+15. Confirm the `PUBLIC_FORM_TOKEN` in Apps Script matches `requestFormToken` in website `config.js`.
+16. Submit a test request through `https://gtpcs.ca/request/`.
+17. Confirm that `gtpcca@gmail.com` receives an email.
+18. Confirm that the response row appears in the purchase request sheet, not the inventory sheet.
+19. Confirm that the response row gets `Ticket ID` and `Ticket Status = New`.
 
 ## What The Script Does
 
 - Handles website form submissions through `doPost`.
+- Sends a confirmation message back to the website request page after success or failure.
 - Rejects filled honeypot submissions.
 - Rejects missing/invalid name, email, or message submissions.
 - Checks the public form token before writing to the sheet.
