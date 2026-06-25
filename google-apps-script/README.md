@@ -6,6 +6,8 @@ The website form submits to an Apps Script Web App. The script writes the reques
 
 Inventory repair utilities are separate. Use `reset-inventory-database.gs` with `INVENTORY_RESET.md` only when repairing the public inventory spreadsheet.
 
+Ticket/order tracking repair utilities are separate. Use `reset-ticket-order-tracking.gs` with `TICKET_ORDER_RESET.md` only when repairing the private request spreadsheet tabs.
+
 ## Current GTPCS Sheet
 
 Spreadsheet ID:
