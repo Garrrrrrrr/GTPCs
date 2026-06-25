@@ -847,15 +847,20 @@
         return;
       }
 
-      var requestUrl = new URL(actionUrl);
+      var fallbackForm = document.createElement("form");
       var formData = new FormData(formElement);
 
-      requestUrl.searchParams.set("action", "submit");
-      requestUrl.searchParams.set("response", "html");
-      requestUrl.searchParams.set("request_id", activeRequestId);
-      requestUrl.searchParams.set("_", String(Date.now()));
+      fallbackForm.method = "POST";
+      fallbackForm.action = actionUrl;
+      fallbackForm.target = frame.name || "request-submit-frame";
+      fallbackForm.hidden = true;
+
+      appendHiddenFallbackField(fallbackForm, "action", "submit");
+      appendHiddenFallbackField(fallbackForm, "response", "html");
+      appendHiddenFallbackField(fallbackForm, "request_id", activeRequestId);
+      appendHiddenFallbackField(fallbackForm, "_", String(Date.now()));
       formData.forEach(function (value, key) {
-        requestUrl.searchParams.set(key, value);
+        appendHiddenFallbackField(fallbackForm, key, value);
       });
 
       fallbackInProgress = true;
@@ -863,7 +868,19 @@
         status.textContent = "Direct confirmation was blocked by the browser. Sending through fallback...";
         status.classList.add("notice-warning");
       }
-      frame.src = requestUrl.toString();
+      document.body.appendChild(fallbackForm);
+      fallbackForm.submit();
+      window.setTimeout(function () {
+        if (fallbackForm.parentNode) fallbackForm.parentNode.removeChild(fallbackForm);
+      }, 1000);
+    }
+
+    function appendHiddenFallbackField(formElement, name, value) {
+      var input = document.createElement("input");
+      input.type = "hidden";
+      input.name = name;
+      input.value = value == null ? "" : String(value);
+      formElement.appendChild(input);
     }
 
     function handleRequestResult(data) {

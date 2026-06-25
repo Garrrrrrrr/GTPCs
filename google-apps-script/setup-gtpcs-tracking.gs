@@ -293,7 +293,8 @@ function logWebTicketError_(params, errorMessage) {
       "Message",
       "Page URL",
       "User Agent",
-      "Honeypot Filled"
+      "Honeypot Filled",
+      "Parameter Keys"
     ];
 
     ensureHeaders_(sheet, headers);
@@ -312,7 +313,8 @@ function logWebTicketError_(params, errorMessage) {
       cleanParam_(params.message),
       cleanParam_(params.page_url),
       cleanParam_(params.user_agent),
-      cleanParam_(params.company_website) ? "Yes" : "No"
+      cleanParam_(params.company_website) ? "Yes" : "No",
+      Object.keys(params || {}).sort().join(", ")
     ]);
   } catch (logError) {
     console.error(logError);
