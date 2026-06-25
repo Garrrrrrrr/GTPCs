@@ -14,6 +14,44 @@ function setupGTPCSTrackingSheetsStandalone() {
   SpreadsheetApp.flush();
 }
 
+function doGet() {
+  return HtmlService
+    .createHtmlOutput(`${BUSINESS_NAME} Ticket System is running.`)
+    .setTitle(`${BUSINESS_NAME} Ticket System`);
+}
+
+function doPost(e) {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+
+  try {
+    const params = e && e.parameter ? e.parameter : {};
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheet = getOrCreateSheet_(ss, "Form Responses");
+
+    setupFormResponsesSheet_(sheet);
+
+    const row = Math.max(sheet.getLastRow() + 1, 2);
+    const ticketId = `GTPCS-${String(row - 1).padStart(4, "0")}`;
+    const values = buildWebTicketValues_(params, ticketId);
+
+    setRowValuesByHeader_(sheet, row, values);
+    sendWebTicketEmail_(ticketId, values);
+
+    SpreadsheetApp.flush();
+
+    return ContentService
+      .createTextOutput(JSON.stringify({ ok: true, ticketId }))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch (error) {
+    return ContentService
+      .createTextOutput(JSON.stringify({ ok: false, error: String(error && error.message ? error.message : error) }))
+      .setMimeType(ContentService.MimeType.JSON);
+  } finally {
+    lock.releaseLock();
+  }
+}
+
 function sendNewTicketEmail(e) {
   const namedValues = e && e.namedValues ? e.namedValues : {};
   const sheet = e.range.getSheet();
@@ -84,6 +122,7 @@ function getOrCreateSheet_(ss, name) {
 function setupFormResponsesSheet_(sheet) {
   const headers = [
     "Timestamp",
+    "Request Type",
     "Name",
     "Email",
     "Phone",
@@ -92,6 +131,8 @@ function setupFormResponsesSheet_(sheet) {
     "Pickup or Shipping",
     "Payment Method",
     "Message",
+    "Page URL",
+    "User Agent",
     "Ticket ID",
     "Ticket Status",
     "Internal Notes",
@@ -113,6 +154,76 @@ function setupFormResponsesSheet_(sheet) {
       "Rejected / Spam"
     ]);
   }
+}
+
+function buildWebTicketValues_(params, ticketId) {
+  return {
+    "Timestamp": new Date(),
+    "Request Type": cleanParam_(params.request_type),
+    "Name": cleanParam_(params.name),
+    "Email": cleanParam_(params.email),
+    "Phone": cleanParam_(params.phone),
+    "Item/SKU": cleanParam_(params.sku),
+    "Item Requested": cleanParam_(params.item_name),
+    "Pickup or Shipping": cleanParam_(params.handoff),
+    "Payment Method": "",
+    "Message": cleanParam_(params.message),
+    "Page URL": cleanParam_(params.page_url),
+    "User Agent": cleanParam_(params.user_agent),
+    "Ticket ID": ticketId,
+    "Ticket Status": "New",
+    "Internal Notes": "",
+    "Linked Order ID": ""
+  };
+}
+
+function setRowValuesByHeader_(sheet, row, valuesByHeader) {
+  ensureHeaders_(sheet, Object.keys(valuesByHeader));
+  const headers = getHeaders_(sheet);
+
+  Object.entries(valuesByHeader).forEach(([header, value]) => {
+    const col = headers.indexOf(header) + 1;
+    if (col > 0) {
+      sheet.getRange(row, col).setValue(value);
+    }
+  });
+}
+
+function sendWebTicketEmail_(ticketId, valuesByHeader) {
+  let htmlBody = `
+    <div style="font-family: Arial, sans-serif; line-height: 1.5;">
+      <h2>New GTPCS Ticket: ${ticketId}</h2>
+      <p>A new request was submitted through GTPCS.ca.</p>
+      <table cellpadding="8" cellspacing="0" border="1" style="border-collapse: collapse;">
+  `;
+
+  Object.entries(valuesByHeader).forEach(([label, value]) => {
+    htmlBody += `
+      <tr>
+        <td><strong>${escapeHtml_(label)}</strong></td>
+        <td>${escapeHtml_(value)}</td>
+      </tr>
+    `;
+  });
+
+  htmlBody += `
+      </table>
+      <p>Open the GTPCS Google Sheet to manage this ticket.</p>
+    </div>
+  `;
+
+  const plainBody =
+    `New GTPCS Ticket: ${ticketId}\n\n` +
+    Object.entries(valuesByHeader)
+      .map(([label, value]) => `${label}: ${value}`)
+      .join("\n");
+
+  MailApp.sendEmail({
+    to: NOTIFY_EMAIL,
+    subject: `New GTPCS Ticket ${ticketId}`,
+    body: plainBody,
+    htmlBody
+  });
 }
 
 function setupOrderTrackingSheet_(sheet) {
@@ -311,4 +422,9 @@ function escapeHtml_(value) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
+}
+
+function cleanParam_(value) {
+  if (value === null || value === undefined) return "";
+  return String(value).trim();
 }

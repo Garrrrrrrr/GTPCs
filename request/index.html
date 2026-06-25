@@ -35,17 +35,71 @@
       <p>Submit this form and we'll get back to you by email. High-value orders are manually reviewed before finalizing.</p>
       <p id="requested-item-message" class="notice" hidden></p>
 
-      <div class="form-frame-wrap">
-        <iframe
-          src="https://docs.google.com/forms/d/e/1FAIpQLSexnov0HhbPVF8WeGjNTNkWKjZPtvhUGKViQJzB_jEctYCD0g/viewform?embedded=true"
-          width="100%"
-          height="1200"
-          frameborder="0"
-          marginheight="0"
-          marginwidth="0">
-          Loading...
-        </iframe>
-      </div>
+      <form id="request-form" class="request-form" method="POST" target="request-submit-frame">
+        <input type="hidden" id="page-url" name="page_url">
+        <input type="hidden" id="user-agent" name="user_agent">
+
+        <div class="form-grid">
+          <div class="field">
+            <label for="request-type">Request type</label>
+            <select id="request-type" name="request_type" required>
+              <option value="Purchase">Purchase</option>
+              <option value="Repair">Repair</option>
+              <option value="General Question">General Question</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="handoff">Pickup or shipping</label>
+            <select id="handoff" name="handoff" required>
+              <option value="Local pickup in Edmonton">Local pickup in Edmonton</option>
+              <option value="Shipping if available">Shipping if available</option>
+              <option value="Ask me about options">Ask me about options</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="customer-name">Name</label>
+            <input id="customer-name" name="name" type="text" autocomplete="name" required>
+          </div>
+
+          <div class="field">
+            <label for="customer-email">Email</label>
+            <input id="customer-email" name="email" type="email" autocomplete="email" required>
+          </div>
+
+          <div class="field">
+            <label for="customer-phone">Phone</label>
+            <input id="customer-phone" name="phone" type="tel" autocomplete="tel">
+          </div>
+
+          <div class="field">
+            <label for="request-sku">SKU</label>
+            <input id="request-sku" name="sku" type="text" placeholder="If listed">
+          </div>
+
+          <div class="field field-wide">
+            <label for="request-item">Item name</label>
+            <input id="request-item" name="item_name" type="text" placeholder="GPU, gaming PC, repair service, or component">
+          </div>
+
+          <div class="field field-wide">
+            <label for="request-message">Message</label>
+            <textarea id="request-message" name="message" rows="7" placeholder="Tell us what you want to buy, what needs repair, or what question you have." required></textarea>
+          </div>
+        </div>
+
+        <div id="request-form-status" class="notice" role="status">
+          Requests submit to GTPCS ticket tracking. You will receive a reply by email after review.
+        </div>
+
+        <div class="action-row">
+          <button id="request-submit" class="button primary" type="submit"><i data-lucide="send"></i>Submit Request</button>
+          <a class="button ghost" href="/inventory/"><i data-lucide="boxes"></i>View Inventory</a>
+        </div>
+      </form>
+
+      <iframe id="request-submit-frame" name="request-submit-frame" title="Request submission status" hidden></iframe>
     </section>
   </main>
 

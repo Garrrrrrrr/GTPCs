@@ -705,20 +705,23 @@ textarea {
   padding: 48px 20px 80px;
 }
 
-.form-frame-wrap {
+.request-form {
   margin-top: 24px;
   border: 1px solid var(--border);
-  border-radius: 18px;
-  overflow: hidden;
+  border-radius: var(--radius);
+  padding: 22px;
   background: var(--card);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.28);
 }
 
-.form-frame-wrap iframe {
-  display: block;
-  width: 100%;
-  min-height: 1200px;
-  background: white;
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.field-wide {
+  grid-column: 1 / -1;
 }
 
 .content-page {

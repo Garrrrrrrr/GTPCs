@@ -643,11 +643,73 @@
     var item = params.get("item");
     var sku = params.get("sku");
     var message = document.getElementById("requested-item-message");
+    var form = document.getElementById("request-form");
+    var status = document.getElementById("request-form-status");
+    var submit = document.getElementById("request-submit");
+    var frame = document.getElementById("request-submit-frame");
+    var webAppUrl = window.CONFIG && CONFIG.appsScriptWebAppUrl ? CONFIG.appsScriptWebAppUrl : "";
+    var hasWebAppUrl = webAppUrl && !/^PASTE_/i.test(webAppUrl);
 
     if (message && (item || sku)) {
       message.textContent = "You are requesting: " + [item, sku].filter(Boolean).join(" - ");
       message.hidden = false;
     }
+
+    setFieldValue("request-item", item || "");
+    setFieldValue("request-sku", sku || "");
+    setFieldValue("page-url", window.location.href);
+    setFieldValue("user-agent", window.navigator.userAgent);
+
+    if (sku === "REPAIR") {
+      setFieldValue("request-type", "Repair");
+    }
+
+    if (!form) return;
+
+    if (hasWebAppUrl) {
+      form.setAttribute("action", webAppUrl);
+    } else {
+      if (submit) submit.disabled = true;
+      if (status) {
+        status.textContent = "The request form is ready, but the Apps Script Web App URL still needs to be added in config.js.";
+        status.classList.add("notice-warning");
+      }
+    }
+
+    var submitted = false;
+    form.addEventListener("submit", function (event) {
+      if (!hasWebAppUrl) {
+        event.preventDefault();
+        return;
+      }
+
+      submitted = true;
+      if (submit) submit.disabled = true;
+      if (status) {
+        status.textContent = "Submitting request...";
+        status.classList.remove("notice-warning");
+      }
+    });
+
+    if (frame) {
+      frame.addEventListener("load", function () {
+        if (!submitted) return;
+
+        if (status) {
+          status.textContent = "Request submitted. GTPCS will review it and reply by email.";
+        }
+        form.reset();
+        setFieldValue("page-url", window.location.href);
+        setFieldValue("user-agent", window.navigator.userAgent);
+        if (submit) submit.disabled = false;
+        submitted = false;
+      });
+    }
+  }
+
+  function setFieldValue(id, value) {
+    var field = document.getElementById(id);
+    if (field) field.value = value || "";
   }
 
   function requestButtonLabel(status) {
