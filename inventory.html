@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Browse current GTPCS inventory for GPUs, gaming PCs, motherboards, and PC parts.">
+  <title>Inventory | GTPCS</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-page="inventory">
+  <header class="site-header">
+    <nav class="nav wrap" aria-label="Main navigation">
+      <a class="brand" href="index.html" aria-label="GTPCS home">
+        <img src="assets/logo.svg" alt="" width="180" height="48">
+      </a>
+      <button class="nav-toggle icon-button" type="button" aria-label="Open navigation" aria-expanded="false">
+        <i data-lucide="menu"></i>
+      </button>
+      <div class="nav-links" data-nav-links>
+        <a href="inventory.html">Inventory</a>
+        <a href="inventory.html?category=GPUs">GPUs</a>
+        <a href="inventory.html?category=Gaming%20PCs">Gaming PCs</a>
+        <a href="mailto:sales@gtpcs.ca">Contact</a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <section class="page-title wrap">
+      <p class="eyebrow">Catalog</p>
+      <h1>Current Inventory</h1>
+      <p>Browse available GPUs, gaming PCs, motherboards, and PC parts. Requests are reviewed manually before a sale is finalized.</p>
+    </section>
+
+    <section class="wrap catalog-layout">
+      <aside class="filters" aria-label="Inventory filters">
+        <div class="field">
+          <label for="search">Search</label>
+          <div class="input-icon">
+            <i data-lucide="search"></i>
+            <input id="search" type="search" placeholder="Name, specs, condition">
+          </div>
+        </div>
+        <div class="field">
+          <label for="category-filter">Category</label>
+          <select id="category-filter">
+            <option value="All">All</option>
+            <option value="GPUs">GPUs</option>
+            <option value="Gaming PCs">Gaming PCs</option>
+            <option value="Motherboards">Motherboards</option>
+            <option value="Parts">Parts</option>
+            <option value="Sold">Sold</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="status-filter">Status</label>
+          <select id="status-filter">
+            <option value="All">All</option>
+            <option value="In Stock">In Stock</option>
+            <option value="Reserved">Reserved</option>
+            <option value="Sold">Sold</option>
+            <option value="Coming Soon">Coming Soon</option>
+            <option value="TBD">TBD</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="sort-filter">Sort</label>
+          <select id="sort-filter">
+            <option value="newest">Newest</option>
+            <option value="price-asc">Price low to high</option>
+            <option value="price-desc">Price high to low</option>
+          </select>
+        </div>
+      </aside>
+
+      <div class="catalog-main">
+        <div class="catalog-summary">
+          <span id="result-count">Loading inventory...</span>
+          <a class="text-link" data-request-link href="#">Request unlisted item</a>
+        </div>
+        <div id="inventory-products" class="product-grid" aria-live="polite">
+          <div class="loading-card">Loading inventory...</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap footer-grid">
+      <div>
+        <strong>GTPCS</strong>
+        <p>Located in Edmonton, Alberta.</p>
+      </div>
+      <div>
+        <a href="index.html">Home</a>
+        <a href="mailto:sales@gtpcs.ca">sales@gtpcs.ca</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="config.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

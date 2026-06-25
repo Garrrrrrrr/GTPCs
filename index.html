@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="GTPCS lists high-end GPUs, gaming PCs, and PC parts in Edmonton, Alberta.">
+  <title>GTPCS | Edmonton GPUs, Gaming PCs, and PC Parts</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-page="home">
+  <header class="site-header">
+    <nav class="nav wrap" aria-label="Main navigation">
+      <a class="brand" href="index.html" aria-label="GTPCS home">
+        <img src="assets/logo.svg" alt="" width="180" height="48">
+      </a>
+      <button class="nav-toggle icon-button" type="button" aria-label="Open navigation" aria-expanded="false">
+        <i data-lucide="menu"></i>
+      </button>
+      <div class="nav-links" data-nav-links>
+        <a href="inventory.html">Inventory</a>
+        <a href="inventory.html?category=GPUs">GPUs</a>
+        <a href="inventory.html?category=Gaming%20PCs">Gaming PCs</a>
+        <a href="mailto:sales@gtpcs.ca">Contact</a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap hero-grid">
+        <div class="hero-copy">
+          <p class="eyebrow">Edmonton PC hardware</p>
+          <h1>GTPCS</h1>
+          <p class="lede">High-end GPUs, gaming PCs, and PC parts in Edmonton, Alberta.</p>
+          <p>GTPCS lists available graphics cards, gaming PCs, and premium PC components in Edmonton, Alberta. Local pickup is available, and shipping may be offered on select items with tracking, insurance, and signature requirement.</p>
+          <div class="action-row">
+            <a class="button primary" href="inventory.html"><i data-lucide="boxes"></i>View Inventory</a>
+            <a class="button" data-request-link href="#"><i data-lucide="send"></i>Request to Buy</a>
+            <a class="button ghost" href="mailto:sales@gtpcs.ca"><i data-lucide="mail"></i>Contact</a>
+          </div>
+        </div>
+        <div class="hero-panel" aria-label="GTPCS inventory categories">
+          <div class="metric">
+            <span>GPUs</span>
+            <strong>RTX / Radeon</strong>
+          </div>
+          <div class="metric">
+            <span>Gaming PCs</span>
+            <strong>Ready to play</strong>
+          </div>
+          <div class="metric">
+            <span>Parts</span>
+            <strong>Premium components</strong>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section wrap">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Current stock</p>
+          <h2>Featured Inventory</h2>
+        </div>
+        <a class="text-link" href="inventory.html">View all inventory</a>
+      </div>
+      <div id="featured-products" class="product-grid" aria-live="polite">
+        <div class="loading-card">Loading featured inventory...</div>
+      </div>
+    </section>
+
+    <section class="section band">
+      <div class="wrap info-grid">
+        <article class="info-block">
+          <i data-lucide="badge-check"></i>
+          <h3>Why buy from GTPCS</h3>
+          <p>Focused inventory, clear condition notes, and manual review before high-value sales are finalized.</p>
+        </article>
+        <article class="info-block">
+          <i data-lucide="map-pin"></i>
+          <h3>Pickup and shipping</h3>
+          <p>Located in Edmonton, Alberta. Local pickup is available on most items. Shipping may be available on select items with tracking, insurance, and signature requirement.</p>
+        </article>
+        <article class="info-block">
+          <i data-lucide="shield-check"></i>
+          <h3>Payment and safety</h3>
+          <p>High-value orders are manually reviewed before finalizing. There is no automatic checkout or cart on this website.</p>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap footer-grid">
+      <div>
+        <strong>GTPCS</strong>
+        <p>High-end GPUs, gaming PCs, and PC parts in Edmonton, Alberta.</p>
+      </div>
+      <div>
+        <a href="inventory.html">Inventory</a>
+        <a href="mailto:sales@gtpcs.ca">sales@gtpcs.ca</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="config.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

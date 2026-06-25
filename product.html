@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="GTPCS product details, pricing, condition, and request information.">
+  <title>Product Details | GTPCS</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-page="product">
+  <header class="site-header">
+    <nav class="nav wrap" aria-label="Main navigation">
+      <a class="brand" href="index.html" aria-label="GTPCS home">
+        <img src="assets/logo.svg" alt="" width="180" height="48">
+      </a>
+      <button class="nav-toggle icon-button" type="button" aria-label="Open navigation" aria-expanded="false">
+        <i data-lucide="menu"></i>
+      </button>
+      <div class="nav-links" data-nav-links>
+        <a href="inventory.html">Inventory</a>
+        <a href="inventory.html?category=GPUs">GPUs</a>
+        <a href="inventory.html?category=Gaming%20PCs">Gaming PCs</a>
+        <a href="mailto:sales@gtpcs.ca">Contact</a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <section id="product-detail" class="wrap product-detail" aria-live="polite">
+      <div class="loading-card">Loading product...</div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap footer-grid">
+      <div>
+        <strong>GTPCS</strong>
+        <p>Located in Edmonton, Alberta.</p>
+      </div>
+      <div>
+        <a href="inventory.html">Inventory</a>
+        <a href="mailto:sales@gtpcs.ca">sales@gtpcs.ca</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="config.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

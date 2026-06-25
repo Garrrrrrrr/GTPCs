@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="900" viewBox="0 0 1200 900" role="img" aria-labelledby="title desc">
+  <title id="title">No image available</title>
+  <desc id="desc">GTPCS product placeholder</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#111a24"/>
+      <stop offset="1" stop-color="#162231"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="900" fill="url(#bg)"/>
+  <rect x="238" y="178" width="724" height="432" rx="32" fill="none" stroke="#4da3ff" stroke-width="22" opacity=".72"/>
+  <rect x="318" y="258" width="564" height="272" rx="18" fill="#0b1117" stroke="rgba(255,255,255,.25)" stroke-width="12"/>
+  <circle cx="438" cy="394" r="58" fill="#4da3ff" opacity=".65"/>
+  <path d="M552 477h214l-68-94-52 64-42-49z" fill="#f4f7fb" opacity=".78"/>
+  <text x="600" y="700" text-anchor="middle" fill="#f4f7fb" font-family="Arial, Helvetica, sans-serif" font-size="54" font-weight="700">No image available</text>
+  <text x="600" y="762" text-anchor="middle" fill="#9fb0c3" font-family="Arial, Helvetica, sans-serif" font-size="34">GTPCS</text>
+</svg>
