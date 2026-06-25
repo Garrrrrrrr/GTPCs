@@ -763,13 +763,14 @@
           window.clearTimeout(confirmationTimer);
           window.clearTimeout(frameFallbackTimer);
           if (status) {
-            status.textContent = "Request sent through fallback submission. Check the response below for the ticket result.";
+            status.textContent = "Request submitted. GTPCS will review it and reply by email.";
             status.classList.remove("notice-warning");
           }
-          showSubmissionFrame();
+          hideSubmissionFrame();
           if (submit) submit.disabled = false;
           submitted = false;
           fallbackInProgress = false;
+          resetRequestForm();
           return;
         }
 
@@ -779,10 +780,10 @@
 
           window.clearTimeout(confirmationTimer);
           if (status) {
-            status.textContent = "Submission loaded, but the site did not receive a ticket confirmation. Check the response below before trying again.";
+            status.textContent = "Request status could not be confirmed. Please try again or email GTPCS directly.";
             status.classList.add("notice-warning");
           }
-          showSubmissionFrame();
+          hideSubmissionFrame();
           if (submit) submit.disabled = false;
           submitted = false;
         }, 1200);
@@ -865,8 +866,8 @@
 
       fallbackInProgress = true;
       if (status) {
-        status.textContent = "Direct confirmation was blocked by the browser. Sending through fallback...";
-        status.classList.add("notice-warning");
+        status.textContent = "Submitting request...";
+        status.classList.remove("notice-warning");
       }
       document.body.appendChild(fallbackForm);
       fallbackForm.submit();
