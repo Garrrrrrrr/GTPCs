@@ -74,11 +74,15 @@ select {
 .brand {
   display: inline-flex;
   align-items: center;
+  gap: 10px;
+  font-weight: 900;
+  letter-spacing: 0;
 }
 
 .brand img {
-  width: 180px;
+  width: 48px;
   height: 48px;
+  border-radius: var(--radius);
 }
 
 .nav-links {
