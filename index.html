@@ -5,22 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="GTPCS lists high-end GPUs, gaming PCs, and PC parts in Edmonton, Alberta.">
   <title>GTPCS | Edmonton GPUs, Gaming PCs, and PC Parts</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="/styles.css">
 </head>
 <body data-page="home">
   <header class="site-header">
     <nav class="nav wrap" aria-label="Main navigation">
-      <a class="brand" href="index.html" aria-label="GTPCS home">
-        <img src="assets/434289389_385981804262763_5730762689926295884_n.svg" alt="" width="48" height="48">
+      <a class="brand" href="/" aria-label="GTPCS home">
+        <img src="/assets/434289389_385981804262763_5730762689926295884_n.svg" alt="" width="48" height="48">
         <span>GTPCS</span>
       </a>
       <button class="nav-toggle icon-button" type="button" aria-label="Open navigation" aria-expanded="false">
         <i data-lucide="menu"></i>
       </button>
       <div class="nav-links" data-nav-links>
-        <a href="inventory.html">Inventory</a>
-        <a href="inventory.html?category=GPUs">GPUs</a>
-        <a href="inventory.html?category=Gaming%20PCs">Gaming PCs</a>
+        <a href="/inventory/">Inventory</a>
+        <a href="/inventory/?category=GPUs">GPUs</a>
+        <a href="/inventory/?category=Gaming%20PCs">Gaming PCs</a>
+        <a href="/about/">About</a>
         <a href="mailto:gtpcca@gmail.com">Contact</a>
       </div>
     </nav>
@@ -35,7 +36,7 @@
           <p class="lede">High-end GPUs, gaming PCs, and PC parts in Edmonton, Alberta.</p>
           <p>GTPCS lists available graphics cards, gaming PCs, and premium PC components in Edmonton, Alberta. Local pickup is available, and shipping may be offered on select items with tracking, insurance, and signature requirement.</p>
           <div class="action-row">
-            <a class="button primary" href="inventory.html"><i data-lucide="boxes"></i>View Inventory</a>
+            <a class="button primary" href="/inventory/"><i data-lucide="boxes"></i>View Inventory</a>
             <a class="button" data-request-link href="#"><i data-lucide="send"></i>Request to Buy</a>
             <a class="button ghost" href="mailto:gtpcca@gmail.com"><i data-lucide="mail"></i>Contact</a>
           </div>
@@ -63,7 +64,7 @@
           <p class="eyebrow">Current stock</p>
           <h2>Featured Inventory</h2>
         </div>
-        <a class="text-link" href="inventory.html">View all inventory</a>
+        <a class="text-link" href="/inventory/">View all inventory</a>
       </div>
       <div id="featured-products" class="product-grid" aria-live="polite">
         <div class="loading-card">Loading featured inventory...</div>
@@ -72,6 +73,11 @@
 
     <section class="section band">
       <div class="wrap info-grid">
+        <article class="info-block">
+          <i data-lucide="user-round-check"></i>
+          <h3>About GTPCS</h3>
+          <p>GTPCS is run by a local Edmontonian who specializes in PCs, graphics cards, and computer components.</p>
+        </article>
         <article class="info-block">
           <i data-lucide="badge-check"></i>
           <h3>Why buy from GTPCS</h3>
@@ -98,7 +104,10 @@
         <p>High-end GPUs, gaming PCs, and PC parts in Edmonton, Alberta.</p>
       </div>
       <div>
-        <a href="inventory.html">Inventory</a>
+        <a href="/inventory/">Inventory</a>
+        <a href="/about/">About</a>
+        <a href="/privacy/">Privacy Policy</a>
+        <a href="/terms/">Terms and Conditions</a>
         <a href="mailto:gtpcca@gmail.com">gtpcca@gmail.com</a>
       </div>
     </div>
@@ -106,7 +115,7 @@
 
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-  <script src="config.js"></script>
-  <script src="script.js"></script>
+  <script src="/config.js"></script>
+  <script src="/script.js"></script>
 </body>
 </html>

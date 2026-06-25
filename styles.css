@@ -447,7 +447,7 @@ h3 {
 
 .info-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 18px;
 }
 
@@ -713,6 +713,38 @@ textarea {
   padding: 12px 14px;
   background: rgba(77, 163, 255, 0.08);
   color: var(--muted);
+}
+
+.content-page {
+  padding-bottom: 80px;
+}
+
+.content-panel {
+  max-width: 860px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  background: var(--card);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.2);
+}
+
+.content-panel h2 {
+  margin-top: 28px;
+  font-size: clamp(1.35rem, 3vw, 2rem);
+}
+
+.content-panel h2:first-child {
+  margin-top: 0;
+}
+
+.content-panel p,
+.content-panel li {
+  color: var(--muted);
+}
+
+.content-panel ul {
+  margin: 12px 0 0;
+  padding-left: 22px;
 }
 
 .site-footer {

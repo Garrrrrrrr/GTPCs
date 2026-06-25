@@ -20,6 +20,7 @@
   };
 
   document.addEventListener("DOMContentLoaded", function () {
+    normalizeCleanUrl();
     setupNav();
     setupRequestLinks();
 
@@ -48,6 +49,29 @@
       var isOpen = document.body.classList.toggle("nav-open");
       toggle.setAttribute("aria-expanded", String(isOpen));
     });
+  }
+
+  function normalizeCleanUrl() {
+    var cleanPaths = {
+      "/index.html": "/",
+      "/inventory.html": "/inventory/",
+      "/inventory/index.html": "/inventory/",
+      "/product.html": "/product/",
+      "/product/index.html": "/product/",
+      "/request.html": "/request/",
+      "/request/index.html": "/request/",
+      "/about.html": "/about/",
+      "/about/index.html": "/about/",
+      "/privacy.html": "/privacy/",
+      "/privacy/index.html": "/privacy/",
+      "/terms.html": "/terms/",
+      "/terms/index.html": "/terms/"
+    };
+    var cleanPath = cleanPaths[window.location.pathname];
+
+    if (cleanPath) {
+      window.history.replaceState(null, "", cleanPath + window.location.search + window.location.hash);
+    }
   }
 
   function setupRequestLinks() {
@@ -429,18 +453,18 @@
 
     return [
       '<article class="product-card ' + (isSold ? "is-sold" : "") + '">',
-      '  <a class="product-media" href="product.html?sku=' + encodeURIComponent(product.sku) + '">',
+      '  <a class="product-media" href="/product/?sku=' + encodeURIComponent(product.sku) + '">',
       '    <img src="' + escapeAttr(product.cardImage) + '" alt="' + escapeAttr(product.name) + '" loading="lazy" onerror="this.src=\'' + PLACEHOLDER_IMAGE + '\'">',
       '    <span class="badge ' + statusClass(product.status) + '">' + escapeHtml(product.status) + '</span>',
       '  </a>',
       '  <div class="product-body">',
       '    <div class="product-kicker"><span>' + escapeHtml(product.category) + '</span><span>' + escapeHtml(product.condition || "") + '</span></div>',
-      '    <h3 class="product-title"><a href="product.html?sku=' + encodeURIComponent(product.sku) + '">' + escapeHtml(product.name) + '</a></h3>',
+      '    <h3 class="product-title"><a href="/product/?sku=' + encodeURIComponent(product.sku) + '">' + escapeHtml(product.name) + '</a></h3>',
       priceListHtml(product),
       product.short_description ? '    <p class="product-desc">' + escapeHtml(product.short_description) + '</p>' : "",
       '    <div class="card-actions">',
       requestButton,
-      '      <a class="button ghost" href="product.html?sku=' + encodeURIComponent(product.sku) + '"><i data-lucide="info"></i>View Details</a>',
+      '      <a class="button ghost" href="/product/?sku=' + encodeURIComponent(product.sku) + '"><i data-lucide="info"></i>View Details</a>',
       '    </div>',
       '  </div>',
       '</article>'
@@ -497,7 +521,7 @@
       '    </div>',
       '    <div class="detail-price">' + priceListHtml(product) + '</div>',
       product.description ? '    <p>' + escapeHtml(product.description) + '</p>' : product.short_description ? '    <p>' + escapeHtml(product.short_description) + '</p>' : "",
-      '    <div class="action-row">' + requestButton + '<a class="button ghost" href="inventory.html"><i data-lucide="arrow-left"></i>Back to Inventory</a></div>',
+      '    <div class="action-row">' + requestButton + '<a class="button ghost" href="/inventory/"><i data-lucide="arrow-left"></i>Back to Inventory</a></div>',
       specsHtml(product),
       notesHtml(),
       '  </div>',
@@ -591,7 +615,7 @@
   }
 
   function buildRequestLink(product) {
-    var pageUrl = window.CONFIG && CONFIG.requestPageUrl ? CONFIG.requestPageUrl : "request.html";
+    var pageUrl = window.CONFIG && CONFIG.requestPageUrl ? CONFIG.requestPageUrl : "/request/";
     var params = new URLSearchParams();
 
     if (product) {
