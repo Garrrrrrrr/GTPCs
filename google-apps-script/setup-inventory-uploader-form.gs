@@ -12,6 +12,7 @@ const ADD_FIELD_TITLES = {
   status: "Initial status",
   category: "Category",
   name: "Product name",
+  quantity: "Quantity",
   price_local: "Local price CAD",
   price_shipped: "Shipped price CAD",
   condition: "Condition",
@@ -42,6 +43,7 @@ const INVENTORY_UPLOADER_HEADERS = [
   "status",
   "category",
   "name",
+  "quantity",
   "price_local",
   "price_shipped",
   "condition",
@@ -78,6 +80,11 @@ const INVENTORY_UPLOADER_HEADER_ALIASES = {
   product_name: "name",
   item_name: "name",
   title: "name",
+  qty: "quantity",
+  stock_qty: "quantity",
+  stock_quantity: "quantity",
+  item_quantity: "quantity",
+  available_quantity: "quantity",
   local_price: "price_local",
   local_price_cad: "price_local",
   price_local_cad: "price_local",
@@ -131,7 +138,19 @@ function setupGTPCSInventoryUploaderForm() {
     .setTitle("Add Inventory Item")
     .setHelpText("Use this section for new GPUs, gaming PCs, motherboards, and parts.");
 
-  addAddItemQuestions_(form);
+  const addRoutes = addAddItemQuestions_(form);
+
+  const pcSpecsSection = form.addPageBreakItem()
+    .setTitle("Gaming PC Specs")
+    .setHelpText("Only fill this section for full gaming PC listings.");
+
+  addGamingPcSpecQuestions_(form);
+
+  const mediaSection = form.addPageBreakItem()
+    .setTitle("Photos")
+    .setHelpText("Add product image URLs for the listing.");
+
+  addMediaQuestions_(form);
 
   const markSoldSection = form.addPageBreakItem()
     .setTitle("Mark Item Sold Or Out Of Stock")
@@ -139,7 +158,14 @@ function setupGTPCSInventoryUploaderForm() {
 
   addMarkSoldQuestions_(form);
 
-  addSection.setGoToPage(FormApp.PageNavigationType.SUBMIT);
+  addRoutes.categoryItem.setChoices([
+    addRoutes.categoryItem.createChoice("GPUs", mediaSection),
+    addRoutes.categoryItem.createChoice("Gaming PCs", pcSpecsSection),
+    addRoutes.categoryItem.createChoice("Motherboards", mediaSection),
+    addRoutes.categoryItem.createChoice("Parts", mediaSection)
+  ]);
+  pcSpecsSection.setGoToPage(mediaSection);
+  mediaSection.setGoToPage(FormApp.PageNavigationType.SUBMIT);
 
   actionItem.setChoices([
     actionItem.createChoice(ADD_ITEM_ACTION, addSection),
@@ -214,14 +240,21 @@ function addAddItemQuestions_(form) {
     .setChoiceValues(["In Stock", "Coming Soon", "Reserved", "TBD", "Sold"])
     .setRequired(true);
 
-  form.addListItem()
+  const categoryItem = form.addMultipleChoiceItem()
     .setTitle(ADD_FIELD_TITLES.category)
-    .setChoiceValues(["GPUs", "Gaming PCs", "Motherboards", "Parts"])
     .setRequired(true);
 
   form.addTextItem()
     .setTitle(ADD_FIELD_TITLES.name)
     .setRequired(true);
+
+  form.addTextItem()
+    .setTitle(ADD_FIELD_TITLES.quantity)
+    .setHelpText("Number of units available. Use 1 for a unique PC build or one-off item.")
+    .setRequired(false)
+    .setValidation(FormApp.createTextValidation()
+      .requireNumberGreaterThanOrEqualTo(0)
+      .build());
 
   form.addTextItem()
     .setTitle(ADD_FIELD_TITLES.price_local)
@@ -248,9 +281,13 @@ function addAddItemQuestions_(form) {
     .setTitle(ADD_FIELD_TITLES.specs)
     .setRequired(false);
 
+  return { categoryItem };
+}
+
+function addGamingPcSpecQuestions_(form) {
   form.addSectionHeaderItem()
     .setTitle("Gaming PC specs")
-    .setHelpText("Fill these only when the item is a full gaming PC or bundle.");
+    .setHelpText("This section only appears when the category is Gaming PCs.");
 
   [
     "cpu",
@@ -267,7 +304,9 @@ function addAddItemQuestions_(form) {
       .setTitle(ADD_FIELD_TITLES[key])
       .setRequired(false);
   });
+}
 
+function addMediaQuestions_(form) {
   form.addTextItem()
     .setTitle(ADD_FIELD_TITLES.image_url)
     .setHelpText("Main product photo URL.")
@@ -321,6 +360,7 @@ function addInventoryItemFromUploader_(answers) {
     status: cleanUploaderValue_(answers[ADD_FIELD_TITLES.status]) || "In Stock",
     category: cleanUploaderValue_(answers[ADD_FIELD_TITLES.category]) || "Parts",
     name,
+    quantity: cleanUploaderValue_(answers[ADD_FIELD_TITLES.quantity]) || "1",
     price_local: cleanUploaderValue_(answers[ADD_FIELD_TITLES.price_local]),
     price_shipped: cleanUploaderValue_(answers[ADD_FIELD_TITLES.price_shipped]),
     condition: cleanUploaderValue_(answers[ADD_FIELD_TITLES.condition]),

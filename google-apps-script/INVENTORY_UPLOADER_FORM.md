@@ -19,6 +19,12 @@ The answer branches to different sections:
 
 The `Add new item` section asks for product details needed by the website catalog.
 
+It also asks for quantity. Use `1` for one-off PC builds or unique used items.
+
+If the category is `Gaming PCs`, the form continues to a dedicated PC specs section for CPU, GPU, motherboard, RAM, storage, PSU, case, cooling, and OS.
+
+If the category is `GPUs`, `Motherboards`, or `Parts`, the form skips the PC specs section and goes straight to photos.
+
 The `Mark item sold / out of stock` section asks only for:
 
 - the in-stock item to update

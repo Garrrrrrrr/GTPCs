@@ -4,7 +4,7 @@
   var PLACEHOLDER_IMAGE = "assets/placeholder-product.svg";
   var PUBLIC_FIELDS = [
     "sku", "status", "category", "name", "price_local", "price_shipped",
-    "condition", "short_description", "description", "specs", "cpu", "gpu",
+    "quantity", "condition", "short_description", "description", "specs", "cpu", "gpu",
     "motherboard", "ram", "storage", "psu", "case", "cooling", "os",
     "image_url", "image_urls", "created_at", "updated_at"
   ];
@@ -168,6 +168,11 @@
       product_name: "name",
       item_name: "name",
       title: "name",
+      qty: "quantity",
+      stock_qty: "quantity",
+      stock_quantity: "quantity",
+      item_quantity: "quantity",
+      available_quantity: "quantity",
       local_price: "price_local",
       local_price_cad: "price_local",
       price_local_cad: "price_local",
@@ -526,6 +531,7 @@
       '    <div class="detail-meta">',
       '      <span class="badge ' + statusClass(product.status) + '">' + escapeHtml(product.status) + '</span>',
       product.condition ? '      <span class="badge tbd">' + escapeHtml(product.condition) + '</span>' : "",
+      product.quantity ? '      <span class="badge tbd">Qty ' + escapeHtml(product.quantity) + '</span>' : "",
       '    </div>',
       '    <div class="detail-price">' + priceListHtml(product) + '</div>',
       product.description ? '    <p>' + escapeHtml(product.description) + '</p>' : product.short_description ? '    <p>' + escapeHtml(product.short_description) + '</p>' : "",

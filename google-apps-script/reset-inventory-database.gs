@@ -7,6 +7,7 @@ const INVENTORY_HEADERS = [
   "status",
   "category",
   "name",
+  "quantity",
   "price_local",
   "price_shipped",
   "condition",
@@ -43,6 +44,11 @@ const INVENTORY_HEADER_ALIASES = {
   product_name: "name",
   item_name: "name",
   title: "name",
+  qty: "quantity",
+  stock_qty: "quantity",
+  stock_quantity: "quantity",
+  item_quantity: "quantity",
+  available_quantity: "quantity",
   local_price: "price_local",
   local_price_cad: "price_local",
   price_local_cad: "price_local",
@@ -213,14 +219,15 @@ function styleInventorySheet_(sheet) {
   sheet.setColumnWidth(2, 130);
   sheet.setColumnWidth(3, 130);
   sheet.setColumnWidth(4, 260);
-  sheet.setColumnWidth(5, 110);
-  sheet.setColumnWidth(6, 120);
-  sheet.setColumnWidth(7, 180);
-  sheet.setColumnWidth(8, 260);
-  sheet.setColumnWidth(9, 360);
-  sheet.setColumnWidth(10, 320);
-  sheet.setColumnWidth(20, 300);
-  sheet.setColumnWidth(21, 380);
+  sheet.setColumnWidth(5, 90);
+  sheet.setColumnWidth(6, 110);
+  sheet.setColumnWidth(7, 120);
+  sheet.setColumnWidth(8, 180);
+  sheet.setColumnWidth(9, 260);
+  sheet.setColumnWidth(10, 360);
+  sheet.setColumnWidth(11, 320);
+  sheet.setColumnWidth(21, 300);
+  sheet.setColumnWidth(22, 380);
 
   const filter = sheet.getFilter();
   if (filter) {
@@ -265,6 +272,7 @@ function applyInventoryValidations_(sheet) {
 }
 
 function applyInventoryFormats_(sheet) {
+  applyInventoryColumnFormat_(sheet, "quantity", "0");
   applyInventoryColumnFormat_(sheet, "price_local", "$#,##0");
   applyInventoryColumnFormat_(sheet, "price_shipped", "$#,##0");
   applyInventoryColumnFormat_(sheet, "created_at", "yyyy-mm-dd");

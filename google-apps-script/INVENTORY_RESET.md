@@ -23,6 +23,7 @@ sku
 status
 category
 name
+quantity
 price_local
 price_shipped
 condition
