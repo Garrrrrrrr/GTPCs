@@ -4,6 +4,8 @@ This folder contains the Google Apps Script used by the custom GTPCS request for
 
 The website form submits to an Apps Script Web App. The script writes the request to the GTPCS purchase request sheet, creates a ticket ID, sets `Ticket Status` to `New`, and emails `gtpcca@gmail.com`.
 
+Inventory repair utilities are separate. Use `reset-inventory-database.gs` with `INVENTORY_RESET.md` only when repairing the public inventory spreadsheet.
+
 ## Current GTPCS Sheet
 
 Spreadsheet ID:
