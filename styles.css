@@ -715,6 +715,12 @@ textarea {
   color: var(--muted);
 }
 
+.notice-warning {
+  border-color: rgba(253, 176, 34, 0.45);
+  background: rgba(253, 176, 34, 0.1);
+  color: #ffd89a;
+}
+
 .content-page {
   padding-bottom: 80px;
 }

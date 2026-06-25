@@ -18,14 +18,22 @@
       sort: "newest"
     }
   };
+  var STATIC_PAGES = ["request", "repair", "about", "privacy", "terms"];
+  var RATE_LIMIT_STORAGE_PREFIX = "gtpcs_rate_limit:";
 
   document.addEventListener("DOMContentLoaded", function () {
     normalizeCleanUrl();
     setupNav();
     setupRequestLinks();
+    setupRateLimitedMailtos();
 
     if (document.body.dataset.page === "request") {
       setupRequestForm();
+      refreshIcons();
+      return;
+    }
+
+    if (STATIC_PAGES.includes(document.body.dataset.page)) {
       refreshIcons();
       return;
     }
@@ -79,6 +87,23 @@
   function setupRequestLinks() {
     document.querySelectorAll("[data-request-link]").forEach(function (link) {
       link.setAttribute("href", buildRequestLink());
+    });
+  }
+
+  function setupRateLimitedMailtos() {
+    document.querySelectorAll("[data-rate-limited-mailto]").forEach(function (link) {
+      link.addEventListener("click", function (event) {
+        var key = link.dataset.rateLimitKey || "email";
+        var result = checkRateLimit(key);
+
+        if (!result.allowed) {
+          event.preventDefault();
+          showRateLimitNotice(rateLimitMessage(result), link.dataset.rateLimitTarget);
+          return;
+        }
+
+        recordRateLimit(key);
+      });
     });
   }
 
@@ -646,6 +671,12 @@
     form.addEventListener("submit", function (event) {
       event.preventDefault();
 
+      var limit = checkRateLimit("purchase-request");
+      if (!limit.allowed) {
+        showRateLimitNotice(rateLimitMessage(limit), "request-rate-limit-message");
+        return;
+      }
+
       var item = fieldValue("request-item") || "Inventory item";
       var email = window.CONFIG && CONFIG.contactEmail ? CONFIG.contactEmail : "gtpcca@gmail.com";
       var subject = "Purchase Request - " + item;
@@ -667,6 +698,9 @@
         fieldValue("buyer-message")
       ];
 
+      recordRateLimit("purchase-request");
+      showRateLimitNotice("Email request created. Review and send it from your email app.", "request-rate-limit-message");
+
       window.location.href = "mailto:" + encodeURIComponent(email) +
         "?subject=" + encodeURIComponent(subject) +
         "&body=" + encodeURIComponent(lines.join("\n"));
@@ -681,6 +715,81 @@
   function fieldValue(id) {
     var field = document.getElementById(id);
     return field ? field.value.trim() : "";
+  }
+
+  function getRateLimitConfig() {
+    var configured = window.CONFIG && CONFIG.rateLimit ? CONFIG.rateLimit : {};
+    return {
+      maxActions: Number(configured.maxActions) || 3,
+      windowMs: (Number(configured.windowMinutes) || 60) * 60 * 1000
+    };
+  }
+
+  function checkRateLimit(key) {
+    var config = getRateLimitConfig();
+    var now = Date.now();
+    var records = readRateLimitRecords(key).filter(function (time) {
+      return now - time < config.windowMs;
+    });
+
+    writeRateLimitRecords(key, records);
+
+    if (records.length >= config.maxActions) {
+      return {
+        allowed: false,
+        retryAt: records[0] + config.windowMs,
+        retryMinutes: Math.max(1, Math.ceil((records[0] + config.windowMs - now) / 60000))
+      };
+    }
+
+    return { allowed: true };
+  }
+
+  function recordRateLimit(key) {
+    var config = getRateLimitConfig();
+    var now = Date.now();
+    var records = readRateLimitRecords(key)
+      .filter(function (time) {
+        return now - time < config.windowMs;
+      });
+
+    records.push(now);
+    writeRateLimitRecords(key, records);
+  }
+
+  function readRateLimitRecords(key) {
+    try {
+      var value = window.localStorage.getItem(RATE_LIMIT_STORAGE_PREFIX + key);
+      var parsed = JSON.parse(value || "[]");
+      return Array.isArray(parsed) ? parsed.filter(Number.isFinite) : [];
+    } catch (error) {
+      return [];
+    }
+  }
+
+  function writeRateLimitRecords(key, records) {
+    try {
+      window.localStorage.setItem(RATE_LIMIT_STORAGE_PREFIX + key, JSON.stringify(records));
+    } catch (error) {
+      /* If storage is unavailable, allow normal static-site behavior. */
+    }
+  }
+
+  function rateLimitMessage(result) {
+    return "Too many requests from this browser. Please wait about " + result.retryMinutes + " minute" + (result.retryMinutes === 1 ? "" : "s") + " before trying again.";
+  }
+
+  function showRateLimitNotice(message, targetId) {
+    var target = targetId ? document.getElementById(targetId) : null;
+
+    if (target) {
+      target.textContent = message;
+      target.hidden = false;
+      target.setAttribute("role", "status");
+      return;
+    }
+
+    window.alert(message);
   }
 
   function requestButtonLabel(status) {
