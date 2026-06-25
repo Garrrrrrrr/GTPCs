@@ -27,6 +27,16 @@ If the category is `GPUs`, `Motherboards`, or `Parts`, the form skips the PC spe
 
 The form is generated so the add-item path ends after the photos section and does not continue into the mark-sold section.
 
+The generated Photos section includes URL fields and a reminder to add the upload field manually. Google Forms file-upload questions must be added in the Google Forms editor.
+
+Add a file-upload question in the Photos section with this exact title:
+
+```txt
+Product images
+```
+
+Uploaded files from that question are automatically made viewable by link and written into the inventory row's `image_url` and `image_urls` fields when the form is submitted. The website can then display them through its existing Google Drive image handling.
+
 The `Mark item sold / out of stock` section asks only for:
 
 - the in-stock item to update
@@ -71,7 +81,10 @@ setupGTPCSInventoryUploaderForm()
 5. Approve permissions.
 6. Open `Executions` or `Logs`.
 7. Copy the logged `Inventory uploader edit URL` and `Inventory uploader public URL`.
-8. Keep the public URL private/internal. Do not put it on the website.
+8. Open the edit URL and go to the Photos section.
+9. Add a File upload question titled exactly `Product images`.
+10. Configure it for image files and the number of files you want to allow.
+11. Keep the public URL private/internal. Do not put it on the website.
 
 The setup function also installs:
 
@@ -97,6 +110,8 @@ setupGTPCSInventoryUploaderForm()
 ```
 
 The short `forms.gle` link is not the edit ID. Use the long edit URL.
+
+Running `setupGTPCSInventoryUploaderForm()` rebuilds the generated form questions. If you run it again, re-add the manual `Product images` file-upload question afterward.
 
 ## Manual Sync
 

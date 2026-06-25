@@ -29,7 +29,8 @@ const ADD_FIELD_TITLES = {
   cooling: "Cooling",
   os: "OS",
   image_url: "Main image URL",
-  image_urls: "Additional image URLs"
+  image_urls: "Additional image URLs",
+  image_uploads: "Product images"
 };
 
 const MARK_SOLD_FIELD_TITLES = {
@@ -214,7 +215,7 @@ function installGTPCSInventoryUploaderChoiceSyncTrigger() {
 }
 
 function handleGTPCSInventoryUploaderSubmit(e) {
-  const answers = normalizeUploaderAnswers_(e && e.namedValues ? e.namedValues : {});
+  const answers = normalizeUploaderAnswers_(e);
   const action = cleanUploaderValue_(answers[UPLOADER_ACTION_TITLE]);
 
   if (action === ADD_ITEM_ACTION) {
@@ -308,9 +309,13 @@ function addGamingPcSpecQuestions_(form) {
 }
 
 function addMediaQuestions_(form) {
+  form.addSectionHeaderItem()
+    .setTitle("Image uploads")
+    .setHelpText(`Apps Script cannot create Google Forms file-upload questions. After setup, manually add a File upload question titled exactly "${ADD_FIELD_TITLES.image_uploads}" in this Photos section. Uploaded files with that title will be published and written to the website inventory automatically.`);
+
   form.addTextItem()
     .setTitle(ADD_FIELD_TITLES.image_url)
-    .setHelpText("Main product photo URL.")
+    .setHelpText("Optional. Use if the image is already hosted somewhere public.")
     .setRequired(false);
 
   form.addParagraphTextItem()
@@ -347,6 +352,10 @@ function addInventoryItemFromUploader_(answers) {
   const now = new Date();
   const name = cleanUploaderValue_(answers[ADD_FIELD_TITLES.name]);
   const sku = cleanUploaderValue_(answers[ADD_FIELD_TITLES.sku]) || generateUploaderSku_(name);
+  const uploadedImageUrls = publishUploaderUploadedImages_(answers[ADD_FIELD_TITLES.image_uploads]);
+  const manualMainImageUrl = cleanUploaderValue_(answers[ADD_FIELD_TITLES.image_url]);
+  const manualGalleryUrls = splitUploaderImageUrls_(answers[ADD_FIELD_TITLES.image_urls]);
+  const imageUrls = uniqueUploaderValues_([manualMainImageUrl].concat(manualGalleryUrls, uploadedImageUrls));
 
   if (!name) {
     throw new Error("Product name is required to add an item.");
@@ -377,8 +386,8 @@ function addInventoryItemFromUploader_(answers) {
     case: cleanUploaderValue_(answers[ADD_FIELD_TITLES.case]),
     cooling: cleanUploaderValue_(answers[ADD_FIELD_TITLES.cooling]),
     os: cleanUploaderValue_(answers[ADD_FIELD_TITLES.os]),
-    image_url: cleanUploaderValue_(answers[ADD_FIELD_TITLES.image_url]),
-    image_urls: cleanUploaderValue_(answers[ADD_FIELD_TITLES.image_urls]),
+    image_url: manualMainImageUrl || uploadedImageUrls[0] || "",
+    image_urls: imageUrls.join("\n"),
     created_at: now,
     updated_at: now
   };
@@ -534,14 +543,72 @@ function deleteUploaderTriggers_(functionName) {
     .forEach(trigger => ScriptApp.deleteTrigger(trigger));
 }
 
-function normalizeUploaderAnswers_(namedValues) {
+function normalizeUploaderAnswers_(event) {
   const answers = {};
 
-  Object.entries(namedValues || {}).forEach(([question, value]) => {
+  Object.entries(event && event.namedValues ? event.namedValues : {}).forEach(([question, value]) => {
     answers[question] = Array.isArray(value) ? value.join("\n") : value;
   });
 
+  if (event && event.response) {
+    event.response.getItemResponses().forEach(itemResponse => {
+      const title = itemResponse.getItem().getTitle();
+      const response = itemResponse.getResponse();
+
+      if (Array.isArray(response)) {
+        answers[title] = response.join("\n");
+      } else if (response !== null && response !== undefined) {
+        answers[title] = String(response);
+      }
+    });
+  }
+
   return answers;
+}
+
+function publishUploaderUploadedImages_(value) {
+  const fileIds = extractUploaderDriveFileIds_(value);
+
+  return fileIds.map(fileId => {
+    const file = DriveApp.getFileById(fileId);
+    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    return `https://drive.google.com/open?id=${fileId}`;
+  });
+}
+
+function extractUploaderDriveFileIds_(value) {
+  return uniqueUploaderValues_(String(value || "")
+    .split(/[\n,]+/)
+    .map(part => {
+      const cleaned = cleanUploaderValue_(part);
+      const idMatch = cleaned.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+      const fileMatch = cleaned.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+
+      if (idMatch) return idMatch[1];
+      if (fileMatch) return fileMatch[1];
+      if (/^[a-zA-Z0-9_-]{20,}$/.test(cleaned)) return cleaned;
+      return "";
+    })
+    .filter(Boolean));
+}
+
+function splitUploaderImageUrls_(value) {
+  return uniqueUploaderValues_(String(value || "")
+    .split(/\n|\||,/)
+    .map(cleanUploaderValue_)
+    .filter(Boolean));
+}
+
+function uniqueUploaderValues_(values) {
+  const seen = new Set();
+  return values.filter(value => {
+    const cleaned = cleanUploaderValue_(value);
+    const key = cleaned.toLowerCase();
+
+    if (!cleaned || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 function skuFromUploaderChoice_(choice) {
