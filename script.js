@@ -657,6 +657,7 @@
     var hasWebAppUrl = webAppUrl && !/^PASTE_/i.test(webAppUrl);
     var confirmationTimer = null;
     var frameFallbackTimer = null;
+    var activeJsonpScript = null;
 
     if (message && (item || sku)) {
       message.textContent = "You are requesting: " + [item, sku].filter(Boolean).join(" - ");
@@ -687,8 +688,9 @@
 
     var submitted = false;
     form.addEventListener("submit", function (event) {
+      event.preventDefault();
+
       if (!hasWebAppUrl) {
-        event.preventDefault();
         return;
       }
 
@@ -706,17 +708,24 @@
 
       window.clearTimeout(confirmationTimer);
       window.clearTimeout(frameFallbackTimer);
+      removeActiveJsonpScript();
       confirmationTimer = window.setTimeout(function () {
         if (!submitted) return;
 
         if (status) {
-          status.textContent = "Submission loaded, but the site did not receive a ticket confirmation. Check the response below before trying again.";
+          status.textContent = "Request timed out before GTPCS received confirmation. Please try again or email GTPCS directly.";
           status.classList.add("notice-warning");
         }
-        showSubmissionFrame();
+        removeActiveJsonpScript();
         if (submit) submit.disabled = false;
         submitted = false;
       }, 30000);
+
+      submitRequestWithJsonp(form, webAppUrl)
+        .then(handleRequestResult)
+        .catch(function () {
+          handleRequestResult({ ok: false, error: "The request could not reach GTPCS ticket tracking." });
+        });
     });
 
     window.addEventListener("message", function (event) {
@@ -768,6 +777,78 @@
 
     function showSubmissionFrame() {
       if (frame) frame.hidden = false;
+    }
+
+    function submitRequestWithJsonp(formElement, actionUrl) {
+      return new Promise(function (resolve, reject) {
+        var callbackName = "gtpcsRequestCallback_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
+        var requestUrl = new URL(actionUrl);
+        var formData = new FormData(formElement);
+
+        requestUrl.searchParams.set("action", "submit");
+        requestUrl.searchParams.set("callback", callbackName);
+        requestUrl.searchParams.set("_", String(Date.now()));
+        formData.forEach(function (value, key) {
+          requestUrl.searchParams.set(key, value);
+        });
+
+        window[callbackName] = function (data) {
+          cleanup();
+          resolve(data || { ok: false, error: "GTPCS ticket tracking returned an empty response." });
+        };
+
+        activeJsonpScript = document.createElement("script");
+        activeJsonpScript.async = true;
+        activeJsonpScript.src = requestUrl.toString();
+        activeJsonpScript.onerror = function () {
+          cleanup();
+          reject(new Error("Request script failed to load."));
+        };
+
+        function cleanup() {
+          window.clearTimeout(confirmationTimer);
+          if (activeJsonpScript && activeJsonpScript.parentNode) {
+            activeJsonpScript.parentNode.removeChild(activeJsonpScript);
+          }
+          activeJsonpScript = null;
+          try {
+            delete window[callbackName];
+          } catch (error) {
+            window[callbackName] = undefined;
+          }
+        }
+
+        document.head.appendChild(activeJsonpScript);
+      });
+    }
+
+    function handleRequestResult(data) {
+      if (!submitted) return;
+
+      window.clearTimeout(confirmationTimer);
+      window.clearTimeout(frameFallbackTimer);
+      hideSubmissionFrame();
+
+      if (status) {
+        status.textContent = data.ok
+          ? "Request submitted. GTPCS will review it and reply by email. Ticket ID: " + (data.ticketId || "pending")
+          : "Request failed: " + (data.error || "Please check the form and try again.");
+        status.classList.toggle("notice-warning", !data.ok);
+      }
+
+      if (data.ok) {
+        resetRequestForm();
+      }
+
+      if (submit) submit.disabled = false;
+      submitted = false;
+    }
+
+    function removeActiveJsonpScript() {
+      if (activeJsonpScript && activeJsonpScript.parentNode) {
+        activeJsonpScript.parentNode.removeChild(activeJsonpScript);
+      }
+      activeJsonpScript = null;
     }
 
     function resetRequestForm() {

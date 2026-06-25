@@ -17,53 +17,67 @@ function setupGTPCSTrackingSheetsStandalone() {
   SpreadsheetApp.flush();
 }
 
-function doGet() {
+function doGet(e) {
+  const params = e && e.parameter ? e.parameter : {};
+
+  if (cleanParam_(params.action) === "submit") {
+    return jsonpResponse_(params, processWebTicketWithLock_(params));
+  }
+
   return HtmlService
     .createHtmlOutput(`${BUSINESS_NAME} Ticket System is running for spreadsheet ${TICKET_SPREADSHEET_ID}.`)
     .setTitle(`${BUSINESS_NAME} Ticket System`);
 }
 
 function doPost(e) {
+  return htmlResponse_(processWebTicketWithLock_(e && e.parameter ? e.parameter : {}));
+}
+
+function processWebTicketWithLock_(params) {
   const lock = LockService.getScriptLock();
   lock.waitLock(30000);
 
   try {
-    const params = e && e.parameter ? e.parameter : {};
-    const validationError = validateWebTicket_(params);
-    if (validationError) {
-      logWebTicketError_(params, validationError);
-      return htmlResponse_({ ok: false, error: validationError });
-    }
-
-    const rateLimitKey = buildRateLimitKey_(params);
-    if (isRateLimited_(rateLimitKey)) {
-      logWebTicketError_(params, "Too many requests. Please try again later.");
-      return htmlResponse_({ ok: false, error: "Too many requests. Please try again later." });
-    }
-
-    const ss = getTicketSpreadsheet_();
-    const sheet = getOrCreateSheet_(ss, "Form Responses");
-
-    setupFormResponsesSheet_(sheet);
-
-    const row = Math.max(sheet.getLastRow() + 1, 2);
-    const ticketId = `GTPCS-${String(row - 1).padStart(4, "0")}`;
-    const values = buildWebTicketValues_(params, ticketId);
-
-    setRowValuesByHeader_(sheet, row, values);
-    sendWebTicketEmail_(ticketId, values);
-    recordRateLimit_(rateLimitKey);
-
-    SpreadsheetApp.flush();
-
-    return htmlResponse_({ ok: true, ticketId });
+    return processWebTicket_(params);
   } catch (error) {
     const errorMessage = String(error && error.message ? error.message : error);
-    logWebTicketError_(e && e.parameter ? e.parameter : {}, errorMessage);
-    return htmlResponse_({ ok: false, error: errorMessage });
+    logWebTicketError_(params, errorMessage);
+    return { ok: false, error: errorMessage };
   } finally {
     lock.releaseLock();
   }
+}
+
+function processWebTicket_(params) {
+  const validationError = validateWebTicket_(params);
+  if (validationError) {
+    logWebTicketError_(params, validationError);
+    return { ok: false, error: validationError };
+  }
+
+  const rateLimitKey = buildRateLimitKey_(params);
+  if (isRateLimited_(rateLimitKey)) {
+    const rateLimitError = "Too many requests. Please try again later.";
+    logWebTicketError_(params, rateLimitError);
+    return { ok: false, error: rateLimitError };
+  }
+
+  const ss = getTicketSpreadsheet_();
+  const sheet = getOrCreateSheet_(ss, "Form Responses");
+
+  setupFormResponsesSheet_(sheet);
+
+  const row = Math.max(sheet.getLastRow() + 1, 2);
+  const ticketId = `GTPCS-${String(row - 1).padStart(4, "0")}`;
+  const values = buildWebTicketValues_(params, ticketId);
+
+  setRowValuesByHeader_(sheet, row, values);
+  sendWebTicketEmail_(ticketId, values);
+  recordRateLimit_(rateLimitKey);
+
+  SpreadsheetApp.flush();
+
+  return { ok: true, ticketId };
 }
 
 function getTicketSpreadsheet_() {
@@ -198,6 +212,18 @@ function htmlResponse_(data) {
 </body>
 </html>`)
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+}
+
+function jsonpResponse_(params, data) {
+  const callback = cleanParam_(params.callback);
+  const safeCallback = /^[A-Za-z_$][0-9A-Za-z_$]*$/.test(callback)
+    ? callback
+    : "gtpcsRequestCallback";
+  const payload = JSON.stringify(Object.assign({ source: "gtpcs-request-form" }, data)).replace(/</g, "\\u003c");
+
+  return ContentService
+    .createTextOutput(`${safeCallback}(${payload});`)
+    .setMimeType(ContentService.MimeType.JAVASCRIPT);
 }
 
 function buildWebTicketValues_(params, ticketId) {
