@@ -186,7 +186,10 @@ function htmlResponse_(data) {
 <body>
   <p>${message}</p>
   <script>
-    window.parent.postMessage(${payload}, "*");
+    try {
+      window.parent.postMessage(${payload}, "*");
+      window.top.postMessage(${payload}, "*");
+    } catch (error) {}
   </script>
 </body>
 </html>`)
