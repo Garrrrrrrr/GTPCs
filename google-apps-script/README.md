@@ -2,7 +2,7 @@
 
 This folder contains the Google Apps Script used by the custom GTPCS request form on the website.
 
-The website form submits to an Apps Script Web App. The script writes the request to the GTPCS Google Sheet, creates a ticket ID, sets `Ticket Status` to `New`, and emails `gtpcca@gmail.com`.
+The website form submits to an Apps Script Web App. The script writes the request to the GTPCS purchase request sheet, creates a ticket ID, sets `Ticket Status` to `New`, and emails `gtpcca@gmail.com`.
 
 ## Current GTPCS Sheet
 
@@ -20,23 +20,34 @@ Do not embed or publicly link the internal inventory/product uploader form. That
 
 The website should use the custom `/request/` form that posts to this Apps Script Web App.
 
+The inventory spreadsheet and request spreadsheet are separate:
+
+- Inventory/catalog sheet: used only by `CONFIG.inventoryCsvUrl` in the website.
+- Purchase request sheet: used only by `TICKET_SPREADSHEET_ID` in this Apps Script.
+
 ## Setup
 
 1. Go to https://script.new
 2. Sign in as the Google account that owns the GTPCS sheet.
 3. Paste the contents of `setup-gtpcs-tracking.gs`.
 4. Save the project as `GTPCS Ticket System`.
-5. Run `setupGTPCSTrackingSheetsStandalone`.
-6. Approve permissions.
-7. Click `Deploy` then `New deployment`.
-8. Select type: `Web app`.
-9. Set:
+5. Confirm `TICKET_SPREADSHEET_ID` is:
+
+```txt
+1IAUdWy1FdKKoTHgMCI11Kr9Ic73Vq9Skdc2vSLwxOSI
+```
+
+6. Run `setupGTPCSTrackingSheetsStandalone`.
+7. Approve permissions.
+8. Click `Deploy` then `New deployment`.
+9. Select type: `Web app`.
+10. Set:
    - Description: `GTPCS Website Request Form`
    - Execute as: `Me`
    - Who has access: `Anyone`
-10. Click `Deploy`.
-11. Copy the Web App URL.
-12. In website `config.js`, replace:
+11. Click `Deploy`.
+12. Copy the Web App URL.
+13. In website `config.js`, replace:
 
 ```js
 appsScriptWebAppUrl: "PASTE_DEPLOYED_APPS_SCRIPT_WEB_APP_URL_HERE"
@@ -44,10 +55,11 @@ appsScriptWebAppUrl: "PASTE_DEPLOYED_APPS_SCRIPT_WEB_APP_URL_HERE"
 
 with the deployed Web App URL.
 
-13. Confirm the `PUBLIC_FORM_TOKEN` in Apps Script matches `requestFormToken` in website `config.js`.
-14. Submit a test request through `https://gtpcs.ca/request/`.
-15. Confirm that `gtpcca@gmail.com` receives an email.
-16. Confirm that the response row gets `Ticket ID` and `Ticket Status = New`.
+14. Confirm the `PUBLIC_FORM_TOKEN` in Apps Script matches `requestFormToken` in website `config.js`.
+15. Submit a test request through `https://gtpcs.ca/request/`.
+16. Confirm that `gtpcca@gmail.com` receives an email.
+17. Confirm that the response row appears in the purchase request sheet, not the inventory sheet.
+18. Confirm that the response row gets `Ticket ID` and `Ticket Status = New`.
 
 ## What The Script Does
 
@@ -56,7 +68,7 @@ with the deployed Web App URL.
 - Rejects missing/invalid name, email, or message submissions.
 - Checks the public form token before writing to the sheet.
 - Rate-limits repeated submissions with Apps Script `CacheService`.
-- Opens the GTPCS spreadsheet by ID.
+- Opens the GTPCS purchase request spreadsheet by ID.
 - Creates or prepares `Form Responses`.
 - Creates or prepares `Order Tracking`.
 - Adds dropdowns for ticket, order, payment, fulfillment, and carrier statuses.
@@ -67,9 +79,19 @@ with the deployed Web App URL.
   - `Internal Notes`
   - `Linked Order ID`
 
-## Optional Spreadsheet Trigger
+## Do Not Use A Spreadsheet Trigger
 
-The file still includes `sendNewTicketEmail(e)` for spreadsheet form-submit trigger compatibility. The custom website form does not require that trigger because `doPost` sends the notification directly.
+This script is for the website Web App only. Do not add a spreadsheet `On form submit` trigger for this script.
+
+If requests are still landing in the inventory sheet:
+
+1. Open Apps Script for any old project connected to the inventory sheet.
+2. Go to `Triggers`.
+3. Delete old `On form submit` triggers for GTPCS ticket/email handling.
+4. Open the Web App script project.
+5. Confirm the code uses `TICKET_SPREADSHEET_ID = "1IAUdWy1FdKKoTHgMCI11Kr9Ic73Vq9Skdc2vSLwxOSI"`.
+6. Deploy a new Web App version or edit the existing deployment to use the latest version.
+7. Confirm website `config.js` uses that deployed Web App URL.
 
 ## Important Notes
 

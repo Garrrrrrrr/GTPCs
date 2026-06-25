@@ -1,4 +1,4 @@
-const SPREADSHEET_ID = "1IAUdWy1FdKKoTHgMCI11Kr9Ic73Vq9Skdc2vSLwxOSI";
+const TICKET_SPREADSHEET_ID = "1IAUdWy1FdKKoTHgMCI11Kr9Ic73Vq9Skdc2vSLwxOSI";
 const NOTIFY_EMAIL = "gtpcca@gmail.com";
 const BUSINESS_NAME = "GTPCS";
 const PUBLIC_FORM_TOKEN = "gtpcs-public-request-v1";
@@ -6,7 +6,7 @@ const RATE_LIMIT_SECONDS = 3600;
 const RATE_LIMIT_MAX_SUBMISSIONS = 5;
 
 function setupGTPCSTrackingSheetsStandalone() {
-  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const ss = getTicketSpreadsheet_();
 
   const responseSheet = getOrCreateSheet_(ss, "Form Responses");
   setupFormResponsesSheet_(responseSheet);
@@ -19,7 +19,7 @@ function setupGTPCSTrackingSheetsStandalone() {
 
 function doGet() {
   return HtmlService
-    .createHtmlOutput(`${BUSINESS_NAME} Ticket System is running.`)
+    .createHtmlOutput(`${BUSINESS_NAME} Ticket System is running for spreadsheet ${TICKET_SPREADSHEET_ID}.`)
     .setTitle(`${BUSINESS_NAME} Ticket System`);
 }
 
@@ -39,7 +39,7 @@ function doPost(e) {
       return jsonResponse_({ ok: false, error: "Too many requests. Please try again later." });
     }
 
-    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const ss = getTicketSpreadsheet_();
     const sheet = getOrCreateSheet_(ss, "Form Responses");
 
     setupFormResponsesSheet_(sheet);
@@ -62,53 +62,8 @@ function doPost(e) {
   }
 }
 
-function sendNewTicketEmail(e) {
-  const namedValues = e && e.namedValues ? e.namedValues : {};
-  const sheet = e.range.getSheet();
-  const row = e.range.getRow();
-
-  const ticketId = `GTPCS-${String(row - 1).padStart(4, "0")}`;
-
-  addTicketInfo_(sheet, row, ticketId);
-
-  let htmlBody = `
-    <div style="font-family: Arial, sans-serif; line-height: 1.5;">
-      <h2>New GTPCS Ticket: ${ticketId}</h2>
-      <p>A new request was submitted through the GTPCS website/form.</p>
-      <table cellpadding="8" cellspacing="0" border="1" style="border-collapse: collapse;">
-  `;
-
-  for (const [question, answerArray] of Object.entries(namedValues)) {
-    const answer = Array.isArray(answerArray) ? answerArray.join(", ") : answerArray;
-    htmlBody += `
-      <tr>
-        <td><strong>${escapeHtml_(question)}</strong></td>
-        <td>${escapeHtml_(answer)}</td>
-      </tr>
-    `;
-  }
-
-  htmlBody += `
-      </table>
-      <p>Open the GTPCS Google Sheet to manage this ticket.</p>
-    </div>
-  `;
-
-  const plainBody =
-    `New GTPCS Ticket: ${ticketId}\n\n` +
-    Object.entries(namedValues)
-      .map(([question, answerArray]) => {
-        const answer = Array.isArray(answerArray) ? answerArray.join(", ") : answerArray;
-        return `${question}: ${answer}`;
-      })
-      .join("\n");
-
-  MailApp.sendEmail({
-    to: NOTIFY_EMAIL,
-    subject: `New GTPCS Ticket ${ticketId}`,
-    body: plainBody,
-    htmlBody
-  });
+function getTicketSpreadsheet_() {
+  return SpreadsheetApp.openById(TICKET_SPREADSHEET_ID);
 }
 
 function getOrCreateSheet_(ss, name) {
@@ -380,27 +335,6 @@ function setupOrderTrackingSheet_(sheet) {
   sheet.getRange("B:B").setNumberFormat("yyyy-mm-dd");
   sheet.getRange("R:S").setNumberFormat("yyyy-mm-dd");
   sheet.getRange("U:U").setNumberFormat("yyyy-mm-dd");
-}
-
-function addTicketInfo_(sheet, row, ticketId) {
-  ensureHeaders_(sheet, [
-    "Ticket ID",
-    "Ticket Status",
-    "Internal Notes",
-    "Linked Order ID"
-  ]);
-
-  const headers = getHeaders_(sheet);
-  const ticketCol = headers.indexOf("Ticket ID") + 1;
-  const statusCol = headers.indexOf("Ticket Status") + 1;
-
-  if (ticketCol > 0) {
-    sheet.getRange(row, ticketCol).setValue(ticketId);
-  }
-
-  if (statusCol > 0) {
-    sheet.getRange(row, statusCol).setValue("New");
-  }
 }
 
 function ensureHeaders_(sheet, requiredHeaders) {
