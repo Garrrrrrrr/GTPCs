@@ -324,7 +324,15 @@ function styleTicketResetSheet_(sheet, headerCount) {
     .setWrap(true)
     .setVerticalAlignment("top");
 
-  sheet.getRange(1, 1, Math.max(sheet.getMaxRows(), 2), headerCount).createFilter();
+  createTicketResetFilterIfAllowed_(sheet, headerCount);
+}
+
+function createTicketResetFilterIfAllowed_(sheet, headerCount) {
+  try {
+    sheet.getRange(1, 1, Math.max(sheet.getMaxRows(), 2), headerCount).createFilter();
+  } catch (error) {
+    console.warn(`Skipped filter creation: ${error.message}`);
+  }
 }
 
 function applyTicketResetDropdownByHeader_(sheet, headers, headerName, values) {

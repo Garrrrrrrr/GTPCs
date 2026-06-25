@@ -115,3 +115,4 @@ Last Updated
 - It does not send email.
 - It does not deploy or change the website Web App.
 - Backup tabs are kept in the spreadsheet so you can manually recover data if needed.
+- Filter creation is skipped automatically if Google Sheets reports that the range intersects a table.

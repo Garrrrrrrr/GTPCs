@@ -105,3 +105,4 @@ It will:
 - It does not expose buyer information.
 - The backup tab is kept in the spreadsheet so you can manually recover any data if needed.
 - The script does not delete extra form-linked columns. It clears and hides them because Google Sheets blocks deleting columns that contain form response data.
+- Filter creation is skipped automatically if Google Sheets reports that the range intersects a table.

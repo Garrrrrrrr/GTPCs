@@ -227,7 +227,15 @@ function styleInventorySheet_(sheet) {
     filter.remove();
   }
 
-  sheet.getRange(1, 1, Math.max(sheet.getMaxRows(), 2), INVENTORY_HEADERS.length).createFilter();
+  createInventoryFilterIfAllowed_(sheet, INVENTORY_HEADERS.length);
+}
+
+function createInventoryFilterIfAllowed_(sheet, headerCount) {
+  try {
+    sheet.getRange(1, 1, Math.max(sheet.getMaxRows(), 2), headerCount).createFilter();
+  } catch (error) {
+    console.warn(`Skipped filter creation: ${error.message}`);
+  }
 }
 
 function applyInventoryValidations_(sheet) {
