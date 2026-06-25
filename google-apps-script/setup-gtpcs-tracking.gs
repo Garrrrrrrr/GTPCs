@@ -1,6 +1,9 @@
 const SPREADSHEET_ID = "1KzVm-sNSR8SI-3_tcHJSE9bxWvNKSWcfBymlG6Ti6L8";
 const NOTIFY_EMAIL = "gtpcca@gmail.com";
 const BUSINESS_NAME = "GTPCS";
+const PUBLIC_FORM_TOKEN = "gtpcs-public-request-v1";
+const RATE_LIMIT_SECONDS = 3600;
+const RATE_LIMIT_MAX_SUBMISSIONS = 5;
 
 function setupGTPCSTrackingSheetsStandalone() {
   const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
@@ -26,6 +29,16 @@ function doPost(e) {
 
   try {
     const params = e && e.parameter ? e.parameter : {};
+    const validationError = validateWebTicket_(params);
+    if (validationError) {
+      return jsonResponse_({ ok: false, error: validationError });
+    }
+
+    const rateLimitKey = buildRateLimitKey_(params);
+    if (isRateLimited_(rateLimitKey)) {
+      return jsonResponse_({ ok: false, error: "Too many requests. Please try again later." });
+    }
+
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
     const sheet = getOrCreateSheet_(ss, "Form Responses");
 
@@ -37,16 +50,13 @@ function doPost(e) {
 
     setRowValuesByHeader_(sheet, row, values);
     sendWebTicketEmail_(ticketId, values);
+    recordRateLimit_(rateLimitKey);
 
     SpreadsheetApp.flush();
 
-    return ContentService
-      .createTextOutput(JSON.stringify({ ok: true, ticketId }))
-      .setMimeType(ContentService.MimeType.JSON);
+    return jsonResponse_({ ok: true, ticketId });
   } catch (error) {
-    return ContentService
-      .createTextOutput(JSON.stringify({ ok: false, error: String(error && error.message ? error.message : error) }))
-      .setMimeType(ContentService.MimeType.JSON);
+    return jsonResponse_({ ok: false, error: String(error && error.message ? error.message : error) });
   } finally {
     lock.releaseLock();
   }
@@ -154,6 +164,65 @@ function setupFormResponsesSheet_(sheet) {
       "Rejected / Spam"
     ]);
   }
+}
+
+function validateWebTicket_(params) {
+  if (cleanParam_(params.company_website)) {
+    return "Rejected.";
+  }
+
+  if (cleanParam_(params.form_token) !== PUBLIC_FORM_TOKEN) {
+    return "Invalid request.";
+  }
+
+  const name = cleanParam_(params.name);
+  const email = cleanParam_(params.email);
+  const message = cleanParam_(params.message);
+
+  if (!name || !email || !message) {
+    return "Name, email, and message are required.";
+  }
+
+  if (name.length > 120) {
+    return "Name is too long.";
+  }
+
+  if (message.length < 8 || message.length > 4000) {
+    return "Message must be between 8 and 4000 characters.";
+  }
+
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return "A valid email is required.";
+  }
+
+  return "";
+}
+
+function buildRateLimitKey_(params) {
+  const email = cleanParam_(params.email).toLowerCase();
+  const fingerprint = cleanParam_(params.user_agent).slice(0, 120);
+  return Utilities.base64EncodeWebSafe(`${email}|${fingerprint}`).slice(0, 80);
+}
+
+function isRateLimited_(key) {
+  const cache = CacheService.getScriptCache();
+  const raw = cache.get(`rl:${key}`);
+  const count = raw ? Number(raw) : 0;
+  return count >= RATE_LIMIT_MAX_SUBMISSIONS;
+}
+
+function recordRateLimit_(key) {
+  const cache = CacheService.getScriptCache();
+  const cacheKey = `rl:${key}`;
+  const raw = cache.get(cacheKey);
+  const count = raw ? Number(raw) : 0;
+  cache.put(cacheKey, String(count + 1), RATE_LIMIT_SECONDS);
+}
+
+function jsonResponse_(data) {
+  return ContentService
+    .createTextOutput(JSON.stringify(data))
+    .setMimeType(ContentService.MimeType.JSON);
 }
 
 function buildWebTicketValues_(params, ticketId) {

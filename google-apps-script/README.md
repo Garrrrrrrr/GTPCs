@@ -44,13 +44,18 @@ appsScriptWebAppUrl: "PASTE_DEPLOYED_APPS_SCRIPT_WEB_APP_URL_HERE"
 
 with the deployed Web App URL.
 
-13. Submit a test request through `https://gtpcs.ca/request/`.
-14. Confirm that `gtpcca@gmail.com` receives an email.
-15. Confirm that the response row gets `Ticket ID` and `Ticket Status = New`.
+13. Confirm the `PUBLIC_FORM_TOKEN` in Apps Script matches `requestFormToken` in website `config.js`.
+14. Submit a test request through `https://gtpcs.ca/request/`.
+15. Confirm that `gtpcca@gmail.com` receives an email.
+16. Confirm that the response row gets `Ticket ID` and `Ticket Status = New`.
 
 ## What The Script Does
 
 - Handles website form submissions through `doPost`.
+- Rejects filled honeypot submissions.
+- Rejects missing/invalid name, email, or message submissions.
+- Checks the public form token before writing to the sheet.
+- Rate-limits repeated submissions with Apps Script `CacheService`.
 - Opens the GTPCS spreadsheet by ID.
 - Creates or prepares `Form Responses`.
 - Creates or prepares `Order Tracking`.
@@ -72,4 +77,6 @@ The file still includes `sendNewTicketEmail(e)` for spreadsheet form-submit trig
 - GitHub Pages is static and cannot securely send email by itself.
 - Email notifications are handled by Google Apps Script after website form submission.
 - Do not put private keys, API keys, passwords, buyer private data, supplier data, internal costs, or profit notes in the website repository.
+- Keep buyer request data in the private Google Sheet, not in this public website repository.
+- The form token is public because it is included in static website JavaScript. It blocks basic random POSTs, but it is not a secret.
 - This is a catalog and request workflow only. Do not add checkout or cart handling to this script.

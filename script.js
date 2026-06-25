@@ -659,6 +659,7 @@
     setFieldValue("request-sku", sku || "");
     setFieldValue("page-url", window.location.href);
     setFieldValue("user-agent", window.navigator.userAgent);
+    setFieldValue("form-token", window.CONFIG && CONFIG.requestFormToken ? CONFIG.requestFormToken : "");
 
     if (sku === "REPAIR") {
       setFieldValue("request-type", "Repair");
@@ -701,6 +702,7 @@
         form.reset();
         setFieldValue("page-url", window.location.href);
         setFieldValue("user-agent", window.navigator.userAgent);
+        setFieldValue("form-token", window.CONFIG && CONFIG.requestFormToken ? CONFIG.requestFormToken : "");
         if (submit) submit.disabled = false;
         submitted = false;
       });

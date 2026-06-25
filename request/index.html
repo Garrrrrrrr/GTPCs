@@ -38,6 +38,11 @@
       <form id="request-form" class="request-form" method="POST" target="request-submit-frame">
         <input type="hidden" id="page-url" name="page_url">
         <input type="hidden" id="user-agent" name="user_agent">
+        <input type="hidden" id="form-token" name="form_token">
+        <div class="hp-field" aria-hidden="true">
+          <label for="company-website">Company website</label>
+          <input id="company-website" name="company_website" type="text" tabindex="-1" autocomplete="off">
+        </div>
 
         <div class="form-grid">
           <div class="field">
