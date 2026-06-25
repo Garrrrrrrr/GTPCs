@@ -45,7 +45,8 @@ img {
 
 button,
 input,
-select {
+select,
+textarea {
   font: inherit;
 }
 
@@ -504,7 +505,8 @@ h3 {
 }
 
 input,
-select {
+select,
+textarea {
   width: 100%;
   min-height: 44px;
   border: 1px solid var(--border);
@@ -515,9 +517,15 @@ select {
 }
 
 input:focus,
-select:focus {
+select:focus,
+textarea:focus {
   border-color: rgba(77, 163, 255, 0.8);
   outline: none;
+}
+
+textarea {
+  min-height: 132px;
+  resize: vertical;
 }
 
 .input-icon {
@@ -676,6 +684,37 @@ select:focus {
   padding: 16px;
 }
 
+.request-layout {
+  padding-bottom: 80px;
+}
+
+.request-form {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 22px;
+  background: var(--card);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.2);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.field-wide {
+  grid-column: 1 / -1;
+}
+
+.notice {
+  margin-top: 18px;
+  border: 1px solid rgba(77, 163, 255, 0.32);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  background: rgba(77, 163, 255, 0.08);
+  color: var(--muted);
+}
+
 .site-footer {
   border-top: 1px solid var(--border);
   padding: 28px 0;
@@ -777,7 +816,8 @@ select:focus {
 
   .product-grid,
   .info-grid,
-  .filters {
+  .filters,
+  .form-grid {
     grid-template-columns: 1fr;
   }
 

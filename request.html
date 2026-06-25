@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Send a GTPCS purchase request by email.">
+  <title>Request to Buy | GTPCS</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-page="request">
+  <header class="site-header">
+    <nav class="nav wrap" aria-label="Main navigation">
+      <a class="brand" href="index.html" aria-label="GTPCS home">
+        <img src="assets/434289389_385981804262763_5730762689926295884_n.svg" alt="" width="48" height="48">
+        <span>GTPCS</span>
+      </a>
+      <button class="nav-toggle icon-button" type="button" aria-label="Open navigation" aria-expanded="false">
+        <i data-lucide="menu"></i>
+      </button>
+      <div class="nav-links" data-nav-links>
+        <a href="inventory.html">Inventory</a>
+        <a href="inventory.html?category=GPUs">GPUs</a>
+        <a href="inventory.html?category=Gaming%20PCs">Gaming PCs</a>
+        <a href="mailto:sales@gtpcs.ca">Contact</a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <section class="page-title wrap">
+      <p class="eyebrow">Purchase request</p>
+      <h1>Request to Buy</h1>
+      <p>Send GTPCS the item details and your contact information. High-value orders are manually reviewed before finalizing.</p>
+    </section>
+
+    <section class="wrap request-layout">
+      <form id="request-form" class="request-form">
+        <div class="form-grid">
+          <div class="field">
+            <label for="request-item">Item</label>
+            <input id="request-item" name="item" type="text" placeholder="Item name" required>
+          </div>
+          <div class="field">
+            <label for="request-sku">SKU</label>
+            <input id="request-sku" name="sku" type="text" placeholder="SKU if listed">
+          </div>
+          <div class="field">
+            <label for="request-status">Status</label>
+            <input id="request-status" name="status" type="text" placeholder="In Stock, Reserved, etc.">
+          </div>
+          <div class="field">
+            <label for="request-category">Category</label>
+            <input id="request-category" name="category" type="text" placeholder="GPU, Gaming PC, Parts">
+          </div>
+          <div class="field">
+            <label for="request-price">Listed price</label>
+            <input id="request-price" name="price" type="text" placeholder="Local listed price">
+          </div>
+          <div class="field">
+            <label for="handoff">Preferred handoff</label>
+            <select id="handoff" name="handoff">
+              <option value="Local pickup in Edmonton">Local pickup in Edmonton</option>
+              <option value="Shipping if available">Shipping if available</option>
+              <option value="Ask me about options">Ask me about options</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="buyer-name">Your name</label>
+            <input id="buyer-name" name="buyer_name" type="text" autocomplete="name" required>
+          </div>
+          <div class="field">
+            <label for="buyer-email">Your email</label>
+            <input id="buyer-email" name="buyer_email" type="email" autocomplete="email" required>
+          </div>
+          <div class="field">
+            <label for="buyer-phone">Phone</label>
+            <input id="buyer-phone" name="buyer_phone" type="tel" autocomplete="tel">
+          </div>
+          <div class="field field-wide">
+            <label for="buyer-message">Message</label>
+            <textarea id="buyer-message" name="message" rows="6" placeholder="Ask about availability, pickup, shipping, payment timing, or item condition."></textarea>
+          </div>
+        </div>
+
+        <div class="notice">
+          This opens your email app with a prefilled message to sales@gtpcs.ca. Review and send the email to complete the request.
+        </div>
+
+        <div class="action-row">
+          <button class="button primary" type="submit"><i data-lucide="mail"></i>Create Email Request</button>
+          <a class="button ghost" href="inventory.html"><i data-lucide="arrow-left"></i>Back to Inventory</a>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap footer-grid">
+      <div>
+        <strong>GTPCS</strong>
+        <p>Located in Edmonton, Alberta.</p>
+      </div>
+      <div>
+        <a href="inventory.html">Inventory</a>
+        <a href="mailto:sales@gtpcs.ca">sales@gtpcs.ca</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="config.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

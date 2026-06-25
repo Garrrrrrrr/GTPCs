@@ -22,6 +22,13 @@
   document.addEventListener("DOMContentLoaded", function () {
     setupNav();
     setupRequestLinks();
+
+    if (document.body.dataset.page === "request") {
+      setupRequestForm();
+      refreshIcons();
+      return;
+    }
+
     loadInventory()
       .then(function (products) {
         state.products = products;
@@ -46,8 +53,6 @@
   function setupRequestLinks() {
     document.querySelectorAll("[data-request-link]").forEach(function (link) {
       link.setAttribute("href", buildRequestLink());
-      link.setAttribute("target", "_blank");
-      link.setAttribute("rel", "noopener");
     });
   }
 
@@ -420,7 +425,7 @@
     var isSold = product.status === "Sold";
     var requestButton = isSold
       ? '<span class="button disabled" aria-disabled="true">Sold</span>'
-      : '<a class="button primary" href="' + escapeAttr(buildRequestLink(product)) + '" target="_blank" rel="noopener"><i data-lucide="send"></i>' + escapeHtml(product.requestLabel) + '</a>';
+      : '<a class="button primary" href="' + escapeAttr(buildRequestLink(product)) + '"><i data-lucide="send"></i>' + escapeHtml(product.requestLabel) + '</a>';
 
     return [
       '<article class="product-card ' + (isSold ? "is-sold" : "") + '">',
@@ -475,7 +480,7 @@
     var isSold = product.status === "Sold";
     var requestButton = isSold
       ? '<span class="button disabled" aria-disabled="true">Sold</span>'
-      : '<a class="button primary" href="' + escapeAttr(buildRequestLink(product)) + '" target="_blank" rel="noopener"><i data-lucide="send"></i>' + escapeHtml(product.requestLabel) + '</a>';
+      : '<a class="button primary" href="' + escapeAttr(buildRequestLink(product)) + '"><i data-lucide="send"></i>' + escapeHtml(product.requestLabel) + '</a>';
 
     return [
       '<div class="detail-grid">',
@@ -586,15 +591,70 @@
   }
 
   function buildRequestLink(product) {
-    if (window.CONFIG && CONFIG.requestFormUrl) {
-      return CONFIG.requestFormUrl;
+    var pageUrl = window.CONFIG && CONFIG.requestPageUrl ? CONFIG.requestPageUrl : "request.html";
+    var params = new URLSearchParams();
+
+    if (product) {
+      params.set("item", product.name || "");
+      params.set("sku", product.sku || "");
+      params.set("status", product.status || "");
+      params.set("category", product.category || "");
+      if (product.priceLocalDisplay) params.set("price", product.priceLocalDisplay);
     }
 
-    var email = window.CONFIG && CONFIG.contactEmail ? CONFIG.contactEmail : "sales@gtpcs.ca";
-    var name = product && product.name ? product.name : "an item from GTPCS";
-    var subject = "Purchase Request - " + name;
-    var body = "Hi, I am interested in " + name + ". Is it still available?";
-    return "mailto:" + encodeURIComponent(email) + "?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
+    var query = params.toString();
+    return pageUrl + (query ? "?" + query : "");
+  }
+
+  function setupRequestForm() {
+    var form = document.getElementById("request-form");
+    if (!form) return;
+
+    var params = new URLSearchParams(window.location.search);
+    setFieldValue("request-item", params.get("item") || "");
+    setFieldValue("request-sku", params.get("sku") || "");
+    setFieldValue("request-status", params.get("status") || "");
+    setFieldValue("request-category", params.get("category") || "");
+    setFieldValue("request-price", params.get("price") || "");
+
+    form.addEventListener("submit", function (event) {
+      event.preventDefault();
+
+      var item = fieldValue("request-item") || "Inventory item";
+      var email = window.CONFIG && CONFIG.contactEmail ? CONFIG.contactEmail : "sales@gtpcs.ca";
+      var subject = "Purchase Request - " + item;
+      var lines = [
+        "Purchase request from GTPCS.ca",
+        "",
+        "Item: " + item,
+        "SKU: " + fieldValue("request-sku"),
+        "Status: " + fieldValue("request-status"),
+        "Category: " + fieldValue("request-category"),
+        "Listed price: " + fieldValue("request-price"),
+        "",
+        "Buyer name: " + fieldValue("buyer-name"),
+        "Buyer email: " + fieldValue("buyer-email"),
+        "Phone: " + fieldValue("buyer-phone"),
+        "Preferred handoff: " + fieldValue("handoff"),
+        "",
+        "Message:",
+        fieldValue("buyer-message")
+      ];
+
+      window.location.href = "mailto:" + encodeURIComponent(email) +
+        "?subject=" + encodeURIComponent(subject) +
+        "&body=" + encodeURIComponent(lines.join("\n"));
+    });
+  }
+
+  function setFieldValue(id, value) {
+    var field = document.getElementById(id);
+    if (field) field.value = value || "";
+  }
+
+  function fieldValue(id) {
+    var field = document.getElementById(id);
+    return field ? field.value.trim() : "";
   }
 
   function requestButtonLabel(status) {
