@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Send a GTPCS purchase request by email.">
+  <meta name="description" content="Submit a GTPCS purchase or contact request.">
   <title>Request to Buy | GTPCS</title>
   <link rel="stylesheet" href="/styles.css">
 </head>
@@ -23,77 +23,29 @@
         <a href="/inventory/?category=Gaming%20PCs">Gaming PCs</a>
         <a href="/repair/">Repair</a>
         <a href="/about/">About</a>
-        <a href="mailto:gtpcca@gmail.com">Contact</a>
+        <a href="/request/">Request</a>
       </div>
     </nav>
   </header>
 
   <main>
-    <section class="page-title wrap">
+    <section class="request-section">
       <p class="eyebrow">Purchase request</p>
       <h1>Request to Buy</h1>
-      <p>Send GTPCS the item details and your contact information. High-value orders are manually reviewed before finalizing.</p>
-    </section>
+      <p>Submit this form and we'll get back to you by email. High-value orders are manually reviewed before finalizing.</p>
+      <p id="requested-item-message" class="notice" hidden></p>
 
-    <section class="wrap request-layout">
-      <form id="request-form" class="request-form">
-        <div class="form-grid">
-          <div class="field">
-            <label for="request-item">Item</label>
-            <input id="request-item" name="item" type="text" placeholder="Item name" required>
-          </div>
-          <div class="field">
-            <label for="request-sku">SKU</label>
-            <input id="request-sku" name="sku" type="text" placeholder="SKU if listed">
-          </div>
-          <div class="field">
-            <label for="request-status">Status</label>
-            <input id="request-status" name="status" type="text" placeholder="In Stock, Reserved, etc.">
-          </div>
-          <div class="field">
-            <label for="request-category">Category</label>
-            <input id="request-category" name="category" type="text" placeholder="GPU, Gaming PC, Parts">
-          </div>
-          <div class="field">
-            <label for="request-price">Listed price</label>
-            <input id="request-price" name="price" type="text" placeholder="Local listed price">
-          </div>
-          <div class="field">
-            <label for="handoff">Preferred handoff</label>
-            <select id="handoff" name="handoff">
-              <option value="Local pickup in Edmonton">Local pickup in Edmonton</option>
-              <option value="Shipping if available">Shipping if available</option>
-              <option value="Ask me about options">Ask me about options</option>
-            </select>
-          </div>
-          <div class="field">
-            <label for="buyer-name">Your name</label>
-            <input id="buyer-name" name="buyer_name" type="text" autocomplete="name" required>
-          </div>
-          <div class="field">
-            <label for="buyer-email">Your email</label>
-            <input id="buyer-email" name="buyer_email" type="email" autocomplete="email" required>
-          </div>
-          <div class="field">
-            <label for="buyer-phone">Phone</label>
-            <input id="buyer-phone" name="buyer_phone" type="tel" autocomplete="tel">
-          </div>
-          <div class="field field-wide">
-            <label for="buyer-message">Message</label>
-            <textarea id="buyer-message" name="message" rows="6" placeholder="Ask about availability, pickup, shipping, payment timing, or item condition."></textarea>
-          </div>
-        </div>
-
-        <div class="notice">
-          This opens your email app with a prefilled message to gtpcca@gmail.com. Review and send the email to complete the request.
-        </div>
-        <div id="request-rate-limit-message" class="notice notice-warning" hidden></div>
-
-        <div class="action-row">
-          <button class="button primary" type="submit"><i data-lucide="mail"></i>Create Email Request</button>
-          <a class="button ghost" href="/inventory/"><i data-lucide="arrow-left"></i>Back to Inventory</a>
-        </div>
-      </form>
+      <div class="form-frame-wrap">
+        <iframe
+          src="https://docs.google.com/forms/d/e/1FAIpQLScOpVpwLHhhZc9DRPqm-2SjV5ggKzgbrhzxfToD7EDGygUAAw/viewform?embedded=true"
+          width="100%"
+          height="1200"
+          frameborder="0"
+          marginheight="0"
+          marginwidth="0">
+          Loading...
+        </iframe>
+      </div>
     </section>
   </main>
 
@@ -109,7 +61,7 @@
         <a href="/about/">About</a>
         <a href="/privacy/">Privacy Policy</a>
         <a href="/terms/">Terms and Conditions</a>
-        <a href="mailto:gtpcca@gmail.com">gtpcca@gmail.com</a>
+        <a href="/request/">Request / Contact</a>
       </div>
     </div>
   </footer>

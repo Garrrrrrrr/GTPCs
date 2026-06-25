@@ -684,28 +684,6 @@ textarea {
   padding: 16px;
 }
 
-.request-layout {
-  padding-bottom: 80px;
-}
-
-.request-form {
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 22px;
-  background: var(--card);
-  box-shadow: 0 12px 40px rgba(0,0,0,0.2);
-}
-
-.form-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
-}
-
-.field-wide {
-  grid-column: 1 / -1;
-}
-
 .notice {
   margin-top: 18px;
   border: 1px solid rgba(77, 163, 255, 0.32);
@@ -719,6 +697,28 @@ textarea {
   border-color: rgba(253, 176, 34, 0.45);
   background: rgba(253, 176, 34, 0.1);
   color: #ffd89a;
+}
+
+.request-section {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 48px 20px 80px;
+}
+
+.form-frame-wrap {
+  margin-top: 24px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  overflow: hidden;
+  background: var(--card);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+}
+
+.form-frame-wrap iframe {
+  display: block;
+  width: 100%;
+  min-height: 1200px;
+  background: white;
 }
 
 .content-page {
