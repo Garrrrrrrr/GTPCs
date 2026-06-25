@@ -3,7 +3,8 @@ const NOTIFY_EMAIL = "gtpcca@gmail.com";
 const BUSINESS_NAME = "GTPCS";
 const PUBLIC_FORM_TOKEN = "gtpcs-public-request-v1";
 const RATE_LIMIT_SECONDS = 3600;
-const RATE_LIMIT_MAX_SUBMISSIONS = 5;
+const RATE_LIMIT_MAX_SUBMISSIONS = 20;
+const RATE_LIMIT_CACHE_PREFIX = "rl-v2";
 
 function setupGTPCSTrackingSheetsStandalone() {
   const ss = getTicketSpreadsheet_();
@@ -188,14 +189,14 @@ function buildRateLimitKey_(params) {
 
 function isRateLimited_(key) {
   const cache = CacheService.getScriptCache();
-  const raw = cache.get(`rl:${key}`);
+  const raw = cache.get(`${RATE_LIMIT_CACHE_PREFIX}:${key}`);
   const count = raw ? Number(raw) : 0;
   return count >= RATE_LIMIT_MAX_SUBMISSIONS;
 }
 
 function recordRateLimit_(key) {
   const cache = CacheService.getScriptCache();
-  const cacheKey = `rl:${key}`;
+  const cacheKey = `${RATE_LIMIT_CACHE_PREFIX}:${key}`;
   const raw = cache.get(cacheKey);
   const count = raw ? Number(raw) : 0;
   cache.put(cacheKey, String(count + 1), RATE_LIMIT_SECONDS);
