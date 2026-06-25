@@ -25,6 +25,8 @@ If the category is `Gaming PCs`, the form continues to a dedicated PC specs sect
 
 If the category is `GPUs`, `Motherboards`, or `Parts`, the form skips the PC specs section and goes straight to photos.
 
+The form is generated so the add-item path ends after the photos section and does not continue into the mark-sold section.
+
 The `Mark item sold / out of stock` section asks only for:
 
 - the in-stock item to update

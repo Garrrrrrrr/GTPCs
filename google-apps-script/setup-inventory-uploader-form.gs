@@ -134,6 +134,12 @@ function setupGTPCSInventoryUploaderForm() {
     .setTitle(UPLOADER_ACTION_TITLE)
     .setRequired(true);
 
+  const markSoldSection = form.addPageBreakItem()
+    .setTitle("Mark Item Sold Or Out Of Stock")
+    .setHelpText("Use this section to update an existing live inventory item.");
+
+  addMarkSoldQuestions_(form);
+
   const addSection = form.addPageBreakItem()
     .setTitle("Add Inventory Item")
     .setHelpText("Use this section for new GPUs, gaming PCs, motherboards, and parts.");
@@ -152,18 +158,13 @@ function setupGTPCSInventoryUploaderForm() {
 
   addMediaQuestions_(form);
 
-  const markSoldSection = form.addPageBreakItem()
-    .setTitle("Mark Item Sold Or Out Of Stock")
-    .setHelpText("Use this section to update an existing live inventory item.");
-
-  addMarkSoldQuestions_(form);
-
   addRoutes.categoryItem.setChoices([
     addRoutes.categoryItem.createChoice("GPUs", mediaSection),
     addRoutes.categoryItem.createChoice("Gaming PCs", pcSpecsSection),
     addRoutes.categoryItem.createChoice("Motherboards", mediaSection),
     addRoutes.categoryItem.createChoice("Parts", mediaSection)
   ]);
+  markSoldSection.setGoToPage(FormApp.PageNavigationType.SUBMIT);
   pcSpecsSection.setGoToPage(mediaSection);
   mediaSection.setGoToPage(FormApp.PageNavigationType.SUBMIT);
 
