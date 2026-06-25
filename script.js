@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  var PLACEHOLDER_IMAGE = "assets/placeholder-product.svg";
+  var PLACEHOLDER_IMAGE = "/assets/placeholder-product.svg";
   var PUBLIC_FIELDS = [
     "sku", "status", "category", "name", "price_local", "price_shipped",
     "quantity", "condition", "short_description", "description", "specs", "cpu", "gpu",
@@ -467,7 +467,7 @@
     return [
       '<article class="product-card ' + (isSold ? "is-sold" : "") + '">',
       '  <a class="product-media" href="/product/?sku=' + encodeURIComponent(product.sku) + '">',
-      '    <img src="' + escapeAttr(product.cardImage) + '" alt="' + escapeAttr(product.name) + '" loading="lazy" onerror="this.src=\'' + PLACEHOLDER_IMAGE + '\'">',
+      '    <img src="' + escapeAttr(product.cardImage) + '" alt="' + escapeAttr(product.name) + '" loading="lazy" onerror="this.onerror=null;this.src=\'' + PLACEHOLDER_IMAGE + '\'">',
       '    <span class="badge ' + statusClass(product.status) + '">' + escapeHtml(product.status) + '</span>',
       '  </a>',
       '  <div class="product-body">',
@@ -522,7 +522,7 @@
     return [
       '<div class="detail-grid">',
       '  <div class="gallery">',
-      '    <div class="gallery-main"><img data-gallery-main src="' + escapeAttr(images[0]) + '" alt="' + escapeAttr(product.name) + '" onerror="this.src=\'' + PLACEHOLDER_IMAGE + '\'"></div>',
+      '    <div class="gallery-main"><img data-gallery-main src="' + escapeAttr(images[0]) + '" alt="' + escapeAttr(product.name) + '" onerror="this.onerror=null;this.src=\'' + PLACEHOLDER_IMAGE + '\'"></div>',
       thumbRowHtml(images, product.name),
       '  </div>',
       '  <div class="product-copy">',
@@ -546,7 +546,7 @@
   function thumbRowHtml(images, name) {
     if (images.length < 2) return "";
     return '<div class="thumb-row">' + images.map(function (image, index) {
-      return '<button class="thumb ' + (index === 0 ? "active" : "") + '" type="button" data-gallery-src="' + escapeAttr(image) + '" aria-label="Show image ' + (index + 1) + '"><img src="' + escapeAttr(image) + '" alt="' + escapeAttr(name) + ' image ' + (index + 1) + '" loading="lazy" onerror="this.src=\'' + PLACEHOLDER_IMAGE + '\'"></button>';
+      return '<button class="thumb ' + (index === 0 ? "active" : "") + '" type="button" data-gallery-src="' + escapeAttr(image) + '" aria-label="Show image ' + (index + 1) + '"><img src="' + escapeAttr(image) + '" alt="' + escapeAttr(name) + ' image ' + (index + 1) + '" loading="lazy" onerror="this.onerror=null;this.src=\'' + PLACEHOLDER_IMAGE + '\'"></button>';
     }).join("") + '</div>';
   }
 
