@@ -193,6 +193,39 @@ function syncGTPCSInventoryUploaderChoices() {
     .setChoiceValues(choices.length ? choices : ["No in-stock items found"]);
 }
 
+function sortGTPCSInventoryImagesBySku(sku) {
+  const sheet = getUploaderInventorySheet_();
+  ensureUploaderInventoryHeaders_(sheet);
+
+  const headers = getUploaderHeaders_(sheet);
+  const row = findUploaderRowBySku_(sheet, headers, sku);
+
+  if (!row) {
+    throw new Error(`Could not find SKU in inventory sheet: ${sku}`);
+  }
+
+  const imageUrlCol = headers.indexOf("image_url") + 1;
+  const imageUrlsCol = headers.indexOf("image_urls") + 1;
+  const nameCol = headers.indexOf("name") + 1;
+
+  if (!imageUrlCol || !imageUrlsCol) {
+    throw new Error("Missing image_url or image_urls column.");
+  }
+
+  const productName = nameCol ? cleanUploaderValue_(sheet.getRange(row, nameCol).getValue()) : sku;
+  const currentUrls = uniqueUploaderValues_(
+    splitUploaderImageUrls_(sheet.getRange(row, imageUrlsCol).getValue())
+      .concat(cleanUploaderValue_(sheet.getRange(row, imageUrlCol).getValue()))
+  );
+  const sortedUrls = sortUploaderImageUrlsByDriveName_(currentUrls, productName);
+
+  sheet.getRange(row, imageUrlCol).setValue(sortedUrls[0] || "");
+  sheet.getRange(row, imageUrlsCol).setValue(sortedUrls.join("\n"));
+  setUploaderCellByHeader_(sheet, headers, row, "updated_at", new Date());
+
+  return sortedUrls;
+}
+
 function installGTPCSInventoryUploaderSubmitTrigger() {
   const form = getOrCreateUploaderForm_();
   deleteUploaderTriggers_("handleGTPCSInventoryUploaderSubmit");
@@ -311,7 +344,7 @@ function addGamingPcSpecQuestions_(form) {
 function addMediaQuestions_(form) {
   form.addSectionHeaderItem()
     .setTitle("Image uploads")
-    .setHelpText(`Apps Script cannot create Google Forms file-upload questions. After setup, manually add a File upload question titled exactly "${ADD_FIELD_TITLES.image_uploads}" directly below this note in the Add Inventory Item section. Uploaded files with that title will be published and written to the website inventory automatically.`);
+    .setHelpText(`Apps Script cannot create Google Forms file-upload questions. After setup, manually add a File upload question titled exactly "${ADD_FIELD_TITLES.image_uploads}" directly below this note in the Add Inventory Item section. Uploaded files with that title will be moved into a product-named Drive folder, published, sorted by filename, and written to the website inventory automatically.`);
 
   form.addTextItem()
     .setTitle(ADD_FIELD_TITLES.image_url)
@@ -352,10 +385,6 @@ function addInventoryItemFromUploader_(answers) {
   const now = new Date();
   const name = cleanUploaderValue_(answers[ADD_FIELD_TITLES.name]);
   const sku = cleanUploaderValue_(answers[ADD_FIELD_TITLES.sku]) || generateUploaderSku_(name);
-  const uploadedImageUrls = publishUploaderUploadedImages_(answers[ADD_FIELD_TITLES.image_uploads]);
-  const manualMainImageUrl = cleanUploaderValue_(answers[ADD_FIELD_TITLES.image_url]);
-  const manualGalleryUrls = splitUploaderImageUrls_(answers[ADD_FIELD_TITLES.image_urls]);
-  const imageUrls = uniqueUploaderValues_([manualMainImageUrl].concat(manualGalleryUrls, uploadedImageUrls));
 
   if (!name) {
     throw new Error("Product name is required to add an item.");
@@ -364,6 +393,11 @@ function addInventoryItemFromUploader_(answers) {
   if (findUploaderRowBySku_(sheet, headers, sku)) {
     throw new Error(`SKU already exists: ${sku}`);
   }
+
+  const uploadedImageUrls = publishUploaderUploadedImages_(answers[ADD_FIELD_TITLES.image_uploads], name);
+  const manualMainImageUrl = cleanUploaderValue_(answers[ADD_FIELD_TITLES.image_url]);
+  const manualGalleryUrls = splitUploaderImageUrls_(answers[ADD_FIELD_TITLES.image_urls]);
+  const imageUrls = uniqueUploaderValues_([manualMainImageUrl].concat(manualGalleryUrls, uploadedImageUrls));
 
   const values = {
     sku,
@@ -566,30 +600,151 @@ function normalizeUploaderAnswers_(event) {
   return answers;
 }
 
-function publishUploaderUploadedImages_(value) {
+function publishUploaderUploadedImages_(value, productName) {
   const fileIds = extractUploaderDriveFileIds_(value);
+  const entries = getUploaderDriveFileEntries_(fileIds)
+    .sort(compareUploaderImageEntries_);
+  const folder = getUploaderProductImageFolder_(entries, productName);
 
-  return fileIds.map(fileId => {
-    const file = DriveApp.getFileById(fileId);
-    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-    return `https://drive.google.com/open?id=${fileId}`;
-  });
+  return entries
+    .map(entry => {
+      if (folder) {
+        entry.file.moveTo(folder);
+      }
+
+      entry.file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+      return uploaderDriveUrl_(entry.fileId);
+    });
+}
+
+function getUploaderProductImageFolder_(entries, productName) {
+  const firstFileEntry = entries.find(entry => entry.file);
+  if (!firstFileEntry) return null;
+
+  const folderName = uploaderProductImageFolderName_(productName);
+  const sourceFolder = getFirstUploaderFileParent_(firstFileEntry.file);
+  const containerFolder = sourceFolder ? getFirstUploaderFolderParent_(sourceFolder) || sourceFolder : null;
+
+  if (!containerFolder) return null;
+
+  const matchingFolders = containerFolder.getFoldersByName(folderName);
+  return matchingFolders.hasNext() ? matchingFolders.next() : containerFolder.createFolder(folderName);
+}
+
+function getFirstUploaderFileParent_(file) {
+  const parents = file.getParents();
+  return parents.hasNext() ? parents.next() : null;
+}
+
+function getFirstUploaderFolderParent_(folder) {
+  const parents = folder.getParents();
+  return parents.hasNext() ? parents.next() : null;
+}
+
+function uploaderProductImageFolderName_(productName) {
+  return cleanUploaderValue_(productName)
+    .replace(/[\\/\r\n\t]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim() || "Product images";
+}
+
+function sortUploaderImageUrlsByDriveName_(urls, productName) {
+  const entries = urls
+    .map(url => {
+      const fileId = uploaderDriveFileIdFromValue_(url);
+      const entry = fileId ? getUploaderDriveFileEntry_(fileId) : null;
+
+      return entry || {
+        fileId: "",
+        name: url,
+        url
+      };
+    })
+    .sort(compareUploaderImageEntries_);
+  const folder = productName ? getUploaderProductImageFolder_(entries, productName) : null;
+
+  if (folder) {
+    entries.forEach(entry => {
+      if (entry.file) {
+        entry.file.moveTo(folder);
+      }
+    });
+  }
+
+  return entries
+    .map(entry => entry.url || uploaderDriveUrl_(entry.fileId));
+}
+
+function getUploaderDriveFileEntries_(fileIds) {
+  return uniqueUploaderValues_(fileIds)
+    .map(getUploaderDriveFileEntry_)
+    .filter(Boolean);
+}
+
+function getUploaderDriveFileEntry_(fileId) {
+  const cleanedFileId = cleanUploaderValue_(fileId);
+  if (!cleanedFileId) return null;
+
+  const file = DriveApp.getFileById(cleanedFileId);
+
+  return {
+    fileId: cleanedFileId,
+    file,
+    name: file.getName(),
+    url: uploaderDriveUrl_(cleanedFileId)
+  };
+}
+
+function compareUploaderImageEntries_(a, b) {
+  return naturalCompareUploaderValues_(a.name, b.name) ||
+    naturalCompareUploaderValues_(a.fileId, b.fileId) ||
+    naturalCompareUploaderValues_(a.url, b.url);
+}
+
+function naturalCompareUploaderValues_(left, right) {
+  const leftParts = String(left || "").toLowerCase().match(/\d+|\D+/g) || [""];
+  const rightParts = String(right || "").toLowerCase().match(/\d+|\D+/g) || [""];
+  const length = Math.max(leftParts.length, rightParts.length);
+
+  for (let index = 0; index < length; index++) {
+    const leftPart = leftParts[index] || "";
+    const rightPart = rightParts[index] || "";
+    const leftIsNumber = /^\d+$/.test(leftPart);
+    const rightIsNumber = /^\d+$/.test(rightPart);
+
+    if (leftIsNumber && rightIsNumber) {
+      const difference = Number(leftPart) - Number(rightPart);
+      if (difference) return difference;
+    } else if (leftPart !== rightPart) {
+      return leftPart < rightPart ? -1 : 1;
+    }
+  }
+
+  return String(left || "").localeCompare(String(right || ""));
+}
+
+function uploaderDriveUrl_(fileId) {
+  return `https://drive.google.com/open?id=${fileId}`;
 }
 
 function extractUploaderDriveFileIds_(value) {
   return uniqueUploaderValues_(String(value || "")
     .split(/[\n,]+/)
     .map(part => {
-      const cleaned = cleanUploaderValue_(part);
-      const idMatch = cleaned.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-      const fileMatch = cleaned.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
-
-      if (idMatch) return idMatch[1];
-      if (fileMatch) return fileMatch[1];
-      if (/^[a-zA-Z0-9_-]{20,}$/.test(cleaned)) return cleaned;
-      return "";
+      return uploaderDriveFileIdFromValue_(part);
     })
     .filter(Boolean));
+}
+
+function uploaderDriveFileIdFromValue_(value) {
+  const cleaned = cleanUploaderValue_(value);
+  const idMatch = cleaned.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  const fileMatch = cleaned.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+
+  if (idMatch) return idMatch[1];
+  if (fileMatch) return fileMatch[1];
+  if (/^[a-zA-Z0-9_-]{20,}$/.test(cleaned)) return cleaned;
+  return "";
 }
 
 function splitUploaderImageUrls_(value) {

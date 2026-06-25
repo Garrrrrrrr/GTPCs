@@ -39,6 +39,8 @@ Product images
 
 Uploaded files from that question are automatically made viewable by link and written into the inventory row's `image_url` and `image_urls` fields when the form is submitted. The website can then display them through its existing Google Drive image handling.
 
+Uploaded files are moved into a Google Drive folder named after the product before they are saved. They are also sorted by their Google Drive filename before being written to the sheet. The sorting is numeric-aware, so filenames like `1`, `2`, and `10` display in that order instead of putting `10` first.
+
 The `Mark item sold / out of stock` section asks only for:
 
 - the in-stock item to update
@@ -124,6 +126,16 @@ syncGTPCSInventoryUploaderChoices()
 ```
 
 The script also syncs that dropdown hourly.
+
+## Image Ordering
+
+The website displays product images in the order stored in the `image_urls` cell. To manually rearrange a product gallery, reorder the lines in that cell and set `image_url` to the image you want used first on product cards.
+
+To alphabetically re-sort an existing product's current image URLs by Google Drive filename and move the Drive files into a folder named after the product, paste the latest script into Apps Script and run:
+
+```js
+sortGTPCSInventoryImagesBySku("SKU-HERE")
+```
 
 ## Notes
 
