@@ -21,15 +21,17 @@ The `Add new item` section asks for product details needed by the website catalo
 
 It also asks for quantity. Use `1` for one-off PC builds or unique used items.
 
-If the category is `Gaming PCs`, the form continues to a dedicated PC specs section for CPU, GPU, motherboard, RAM, storage, PSU, case, cooling, and OS.
+The add-item section includes image URL fields and the manual image upload placement note for every category.
 
-If the category is `GPUs`, `Motherboards`, or `Parts`, the form skips the PC specs section and goes straight to photos.
+If the category is `Gaming PCs`, the form then continues to a dedicated PC specs section for CPU, GPU, motherboard, RAM, storage, PSU, case, cooling, and OS.
 
-The form is generated so the add-item path ends after the photos section and does not continue into the mark-sold section.
+If the category is `GPUs`, `Motherboards`, or `Parts`, the form skips the PC specs section and goes directly to the final submit section.
 
-The generated Photos section includes URL fields and a reminder to add the upload field manually. Google Forms file-upload questions must be added in the Google Forms editor.
+The form is generated so the add-item path does not continue into the mark-sold section.
 
-Add a file-upload question in the Photos section with this exact title:
+The generated add-item section includes URL fields and a reminder to add the upload field manually. Google Forms file-upload questions must be added in the Google Forms editor.
+
+Add a file-upload question in the `Add Inventory Item` section with this exact title:
 
 ```txt
 Product images
@@ -81,8 +83,8 @@ setupGTPCSInventoryUploaderForm()
 5. Approve permissions.
 6. Open `Executions` or `Logs`.
 7. Copy the logged `Inventory uploader edit URL` and `Inventory uploader public URL`.
-8. Open the edit URL and go to the Photos section.
-9. Add a File upload question titled exactly `Product images`.
+8. Open the edit URL and go to the `Add Inventory Item` section.
+9. Add a File upload question titled exactly `Product images` directly below the `Image uploads` note.
 10. Configure it for image files and the number of files you want to allow.
 11. Keep the public URL private/internal. Do not put it on the website.
 

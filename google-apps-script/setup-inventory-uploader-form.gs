@@ -153,21 +153,19 @@ function setupGTPCSInventoryUploaderForm() {
 
   addGamingPcSpecQuestions_(form);
 
-  const mediaSection = form.addPageBreakItem()
-    .setTitle("Photos")
-    .setHelpText("Add product image URLs for the listing.");
-
-  addMediaQuestions_(form);
+  const addSubmitSection = form.addPageBreakItem()
+    .setTitle("Finish Add Item")
+    .setHelpText("Submit this inventory item update.");
 
   addRoutes.categoryItem.setChoices([
-    addRoutes.categoryItem.createChoice("GPUs", mediaSection),
+    addRoutes.categoryItem.createChoice("GPUs", addSubmitSection),
     addRoutes.categoryItem.createChoice("Gaming PCs", pcSpecsSection),
-    addRoutes.categoryItem.createChoice("Motherboards", mediaSection),
-    addRoutes.categoryItem.createChoice("Parts", mediaSection)
+    addRoutes.categoryItem.createChoice("Motherboards", addSubmitSection),
+    addRoutes.categoryItem.createChoice("Parts", addSubmitSection)
   ]);
   markSoldSection.setGoToPage(FormApp.PageNavigationType.SUBMIT);
-  pcSpecsSection.setGoToPage(mediaSection);
-  mediaSection.setGoToPage(FormApp.PageNavigationType.SUBMIT);
+  pcSpecsSection.setGoToPage(addSubmitSection);
+  addSubmitSection.setGoToPage(FormApp.PageNavigationType.SUBMIT);
 
   actionItem.setChoices([
     actionItem.createChoice(ADD_ITEM_ACTION, addSection),
@@ -283,6 +281,8 @@ function addAddItemQuestions_(form) {
     .setTitle(ADD_FIELD_TITLES.specs)
     .setRequired(false);
 
+  addMediaQuestions_(form);
+
   return { categoryItem };
 }
 
@@ -311,7 +311,7 @@ function addGamingPcSpecQuestions_(form) {
 function addMediaQuestions_(form) {
   form.addSectionHeaderItem()
     .setTitle("Image uploads")
-    .setHelpText(`Apps Script cannot create Google Forms file-upload questions. After setup, manually add a File upload question titled exactly "${ADD_FIELD_TITLES.image_uploads}" in this Photos section. Uploaded files with that title will be published and written to the website inventory automatically.`);
+    .setHelpText(`Apps Script cannot create Google Forms file-upload questions. After setup, manually add a File upload question titled exactly "${ADD_FIELD_TITLES.image_uploads}" directly below this note in the Add Inventory Item section. Uploaded files with that title will be published and written to the website inventory automatically.`);
 
   form.addTextItem()
     .setTitle(ADD_FIELD_TITLES.image_url)
