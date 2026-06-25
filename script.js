@@ -646,9 +646,11 @@
     var form = document.getElementById("request-form");
     var status = document.getElementById("request-form-status");
     var submit = document.getElementById("request-submit");
+    var frame = document.getElementById("request-submit-frame");
     var webAppUrl = window.CONFIG && CONFIG.appsScriptWebAppUrl ? CONFIG.appsScriptWebAppUrl : "";
     var hasWebAppUrl = webAppUrl && !/^PASTE_/i.test(webAppUrl);
     var confirmationTimer = null;
+    var frameFallbackTimer = null;
 
     if (message && (item || sku)) {
       message.textContent = "You are requesting: " + [item, sku].filter(Boolean).join(" - ");
@@ -692,16 +694,17 @@
       }
 
       window.clearTimeout(confirmationTimer);
+      window.clearTimeout(frameFallbackTimer);
       confirmationTimer = window.setTimeout(function () {
         if (!submitted) return;
 
         if (status) {
-          status.textContent = "Request could not be confirmed. Check the Apps Script Web App deployment URL and try again.";
+          status.textContent = "Request did not finish loading. Check the Apps Script Web App deployment URL and try again.";
           status.classList.add("notice-warning");
         }
         if (submit) submit.disabled = false;
         submitted = false;
-      }, 15000);
+      }, 30000);
     });
 
     window.addEventListener("message", function (event) {
@@ -709,6 +712,7 @@
       if (!data || data.source !== "gtpcs-request-form" || !submitted) return;
 
       window.clearTimeout(confirmationTimer);
+      window.clearTimeout(frameFallbackTimer);
 
       if (status) {
         status.textContent = data.ok
@@ -727,6 +731,29 @@
       if (submit) submit.disabled = false;
       submitted = false;
     });
+
+    if (frame) {
+      frame.addEventListener("load", function () {
+        if (!submitted) return;
+
+        window.clearTimeout(frameFallbackTimer);
+        frameFallbackTimer = window.setTimeout(function () {
+          if (!submitted) return;
+
+          window.clearTimeout(confirmationTimer);
+          if (status) {
+            status.textContent = "Request sent. GTPCS will review it and reply by email.";
+            status.classList.remove("notice-warning");
+          }
+          form.reset();
+          setFieldValue("page-url", window.location.href);
+          setFieldValue("user-agent", window.navigator.userAgent);
+          setFieldValue("form-token", window.CONFIG && CONFIG.requestFormToken ? CONFIG.requestFormToken : "");
+          if (submit) submit.disabled = false;
+          submitted = false;
+        }, 1200);
+      });
+    }
   }
 
   function setFieldValue(id, value) {
