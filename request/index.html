@@ -105,6 +105,15 @@
       </form>
 
       <iframe id="request-submit-frame" class="submission-frame" name="request-submit-frame" title="Request submission status" hidden></iframe>
+
+      <aside id="paypal-payment-panel" class="payment-panel" aria-labelledby="paypal-payment-title">
+        <div>
+          <p class="eyebrow">Approved payments</p>
+          <h2 id="paypal-payment-title">PayPal Payment</h2>
+          <p id="paypal-payment-status">PayPal payment is available after GTPCS confirms the item, total, pickup or shipping details, and payment instructions.</p>
+        </div>
+        <a id="paypal-payment-link" class="button primary" href="#" target="_blank" rel="noopener" hidden><i data-lucide="credit-card"></i>Pay with PayPal</a>
+      </aside>
     </section>
   </main>
 
@@ -126,6 +135,7 @@
   </footer>
 
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <script src="/config.js"></script>
   <script src="/script.js"></script>
 </body>

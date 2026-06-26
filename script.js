@@ -6,7 +6,7 @@
     "sku", "status", "category", "name", "price_local", "price_shipped",
     "quantity", "condition", "short_description", "description", "specs", "cpu", "gpu",
     "motherboard", "ram", "storage", "psu", "case", "cooling", "os",
-    "image_url", "image_urls", "created_at", "updated_at"
+    "image_url", "image_urls", "payment_url", "created_at", "updated_at"
   ];
 
   var state = {
@@ -199,6 +199,13 @@
       product_photos: "image_urls",
       photo_urls_album_url: "image_urls",
       photo_urls_or_album_url: "image_urls",
+      paypal_url: "payment_url",
+      paypal_link: "payment_url",
+      paypal_payment_url: "payment_url",
+      paypal_payment_link: "payment_url",
+      checkout_url: "payment_url",
+      checkout_link: "payment_url",
+      payment_link: "payment_url",
       created: "created_at",
       date_added: "created_at",
       timestamp: "created_at",
@@ -228,6 +235,7 @@
     clean.priceLocalDisplay = formatPrice(clean.price_local);
     clean.priceShippedDisplay = formatPrice(clean.price_shipped);
     clean.priceLocalValue = priceNumber(clean.price_local);
+    clean.paymentUrl = normalizePaymentUrl(clean.payment_url);
     clean.createdTime = dateTime(clean.created_at || clean.updated_at);
     clean.images = collectImages(clean);
     clean.cardImage = clean.images[0] || PLACEHOLDER_IMAGE;
@@ -349,6 +357,20 @@
     }
 
     return raw;
+  }
+
+  function normalizePaymentUrl(url) {
+    var raw = cleanValue(url);
+    if (!raw) return "";
+
+    try {
+      var parsed = new URL(raw);
+      var host = parsed.hostname.toLowerCase();
+      var isPayPalHost = host === "paypal.com" || host.endsWith(".paypal.com") || host === "paypal.me" || host.endsWith(".paypal.me");
+      return parsed.protocol === "https:" && isPayPalHost ? parsed.toString() : "";
+    } catch (error) {
+      return "";
+    }
   }
 
   function renderFeaturedProducts() {
@@ -678,6 +700,8 @@
 
     if (!form) return;
 
+    setupPayPalPaymentPanel(params);
+
     if (hasWebAppUrl) {
       form.setAttribute("action", webAppUrl);
     } else {
@@ -926,6 +950,59 @@
         return window.crypto.randomUUID();
       }
       return "gtpcs-" + Date.now() + "-" + Math.floor(Math.random() * 1000000);
+    }
+  }
+
+  function setupPayPalPaymentPanel(params) {
+    var panel = document.getElementById("paypal-payment-panel");
+    var link = document.getElementById("paypal-payment-link");
+    var status = document.getElementById("paypal-payment-status");
+    if (!panel || !link || !status) return;
+
+    var url = window.CONFIG && CONFIG.paypalPaymentUrl ? normalizePaymentUrl(CONFIG.paypalPaymentUrl) : "";
+    var label = window.CONFIG && CONFIG.paypalPaymentLabel ? CONFIG.paypalPaymentLabel : "Pay with PayPal";
+    var note = window.CONFIG && CONFIG.paypalPaymentNote ? CONFIG.paypalPaymentNote : "Only send payment after GTPCS confirms your order details.";
+    var item = params && params.get("item");
+    var sku = params && params.get("sku");
+    var reference = item || sku ? " Request reference: " + [item, sku].filter(Boolean).join(" - ") + "." : "";
+
+    link.innerHTML = '<i data-lucide="credit-card"></i>' + escapeHtml(label);
+
+    if (url) {
+      showPaymentLink(url, note + reference);
+    } else {
+      showPending("PayPal payment is ready to enable. Add one default PayPal link in config.js, or add a payment_url column to the inventory sheet for item-specific links.");
+    }
+
+    if (sku && window.Papa) {
+      loadInventory()
+        .then(function (products) {
+          var product = products.find(function (item) {
+            return item.sku === sku;
+          });
+          if (product && product.paymentUrl) {
+            showPaymentLink(product.paymentUrl, note + reference);
+          }
+        })
+        .catch(function () {
+          if (!url) {
+            showPending("PayPal payment is ready to enable, but the inventory sheet could not be checked for an item-specific payment link.");
+          }
+        });
+    }
+
+    function showPending(message) {
+      link.hidden = true;
+      status.textContent = message;
+      panel.classList.add("payment-panel-pending");
+    }
+
+    function showPaymentLink(paymentUrl, message) {
+      link.href = paymentUrl;
+      link.hidden = false;
+      panel.classList.remove("payment-panel-pending");
+      status.textContent = message;
+      refreshIcons();
     }
   }
 

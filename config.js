@@ -5,6 +5,9 @@ window.CONFIG = {
   appsScriptWebAppUrl: "https://script.google.com/macros/s/AKfycbwOMWCj474L8e_RgEfgEGb_8YhJaUdmt1fqFD-xaOT5jU7JSAxCSAHwsZ1x1627Bka0vg/exec",
   requestFormToken: "gtpcs-public-request-v1",
   requestPageUrl: "/request/",
+  paypalPaymentUrl: "https://paypal.me/GTPCs",
+  paypalPaymentLabel: "Pay with PayPal",
+  paypalPaymentNote: "Only send payment after GTPCS has confirmed the item, total price, pickup or shipping details, and payment instructions.",
   contactEmail: "gtpcca@gmail.com",
   location: "Edmonton, Alberta"
 };
