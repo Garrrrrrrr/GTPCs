@@ -22,6 +22,8 @@
 
   document.addEventListener("DOMContentLoaded", function () {
     normalizeCleanUrl();
+    setupAnalytics();
+    setupSiteStructuredData();
     setupNav();
     setupRequestLinks();
 
@@ -85,6 +87,52 @@
   function setupRequestLinks() {
     document.querySelectorAll("[data-request-link]").forEach(function (link) {
       link.setAttribute("href", buildRequestLink());
+    });
+  }
+
+  function setupAnalytics() {
+    if (!window.CONFIG || CONFIG.analyticsProvider !== "goatcounter") return;
+
+    var code = cleanValue(CONFIG.goatCounterCode).toLowerCase();
+    if (!/^[a-z0-9][a-z0-9-]*$/.test(code)) return;
+
+    var host = window.location.hostname;
+    var isLocal = host === "localhost" || host === "127.0.0.1" || host === "";
+    if (isLocal && !CONFIG.analyticsTrackLocal) return;
+
+    if (document.querySelector("script[data-goatcounter]")) return;
+
+    var script = document.createElement("script");
+    script.async = true;
+    script.src = "https://gc.zgo.at/count.js";
+    script.setAttribute("data-goatcounter", "https://" + code + ".goatcounter.com/count");
+    document.head.appendChild(script);
+  }
+
+  function setupSiteStructuredData() {
+    setJsonLd("site-structured-data", {
+      "@context": "https://schema.org",
+      "@type": "ComputerStore",
+      "name": "GTPCS",
+      "url": siteUrl("/"),
+      "logo": siteUrl("/assets/434289389_385981804262763_5730762689926295884_n.svg"),
+      "image": siteUrl(window.CONFIG && CONFIG.defaultSocialImage ? CONFIG.defaultSocialImage : "/assets/gtpcs-social-card.svg"),
+      "email": window.CONFIG && CONFIG.contactEmail ? CONFIG.contactEmail : undefined,
+      "description": window.CONFIG && CONFIG.tagline ? CONFIG.tagline : "High-end GPUs, gaming PCs, and PC parts in Edmonton, Alberta.",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Edmonton",
+        "addressRegion": "AB",
+        "addressCountry": "CA"
+      },
+      "areaServed": [
+        { "@type": "City", "name": "Edmonton" },
+        { "@type": "AdministrativeArea", "name": "Alberta" },
+        { "@type": "Country", "name": "Canada" }
+      ],
+      "sameAs": [
+        window.CONFIG && CONFIG.paypalPaymentUrl ? CONFIG.paypalPaymentUrl : undefined
+      ].filter(Boolean)
     });
   }
 
@@ -529,9 +577,29 @@
     }
 
     document.title = product.name + " | GTPCS";
+    updateProductSeo(product);
     target.innerHTML = productDetailHtml(product);
     setupGallery();
     refreshIcons();
+  }
+
+  function updateProductSeo(product) {
+    var description = seoDescription(product.short_description || product.description || product.specs || (product.category + " available from GTPCS in Edmonton, Alberta."));
+    var productUrl = siteUrl("/product/?sku=" + encodeURIComponent(product.sku));
+    var imageUrl = siteUrl(product.cardImage || PLACEHOLDER_IMAGE);
+
+    setMeta("name", "description", description);
+    setMeta("property", "og:type", "product");
+    setMeta("property", "og:title", product.name + " | GTPCS");
+    setMeta("property", "og:description", description);
+    setMeta("property", "og:url", productUrl);
+    setMeta("property", "og:image", imageUrl);
+    setMeta("name", "twitter:title", product.name + " | GTPCS");
+    setMeta("name", "twitter:description", description);
+    setMeta("name", "twitter:image", imageUrl);
+    setCanonical(productUrl);
+
+    setJsonLd("product-structured-data", productStructuredData(product, productUrl, imageUrl, description));
   }
 
   function productDetailHtml(product) {
@@ -1042,6 +1110,124 @@
     if (window.lucide) {
       window.lucide.createIcons();
     }
+  }
+
+  function productStructuredData(product, productUrl, imageUrl, description) {
+    var data = {
+      "@context": "https://schema.org",
+      "@type": "Product",
+      "name": product.name,
+      "sku": product.sku,
+      "category": product.category,
+      "description": description,
+      "image": product.images.length ? product.images.map(siteUrl) : [imageUrl],
+      "url": productUrl,
+      "brand": {
+        "@type": "Brand",
+        "name": "GTPCS"
+      }
+    };
+
+    if (Number.isFinite(product.priceLocalValue)) {
+      data.offers = {
+        "@type": "Offer",
+        "url": productUrl,
+        "priceCurrency": "CAD",
+        "price": String(product.priceLocalValue),
+        "availability": schemaAvailability(product.status),
+        "itemCondition": schemaCondition(product.condition),
+        "seller": {
+          "@type": "ComputerStore",
+          "name": "GTPCS"
+        }
+      };
+    }
+
+    return data;
+  }
+
+  function schemaAvailability(status) {
+    if (status === "In Stock") return "https://schema.org/InStock";
+    if (status === "Sold") return "https://schema.org/SoldOut";
+    if (status === "Reserved") return "https://schema.org/LimitedAvailability";
+    if (status === "Coming Soon") return "https://schema.org/PreOrder";
+    return "https://schema.org/InStoreOnly";
+  }
+
+  function schemaCondition(condition) {
+    var value = String(condition || "").toLowerCase();
+    if (value.includes("new")) return "https://schema.org/NewCondition";
+    if (value.includes("refurb")) return "https://schema.org/RefurbishedCondition";
+    if (value.includes("damaged")) return "https://schema.org/DamagedCondition";
+    return "https://schema.org/UsedCondition";
+  }
+
+  function seoDescription(value) {
+    var text = String(value || "").replace(/\s+/g, " ").trim();
+    if (text.length <= 155) return text;
+    return text.slice(0, 152).replace(/\s+\S*$/, "") + "...";
+  }
+
+  function setCanonical(url) {
+    var link = document.querySelector('link[rel="canonical"]');
+    if (!link) {
+      link = document.createElement("link");
+      link.rel = "canonical";
+      document.head.appendChild(link);
+    }
+    link.href = url;
+  }
+
+  function setMeta(attribute, key, content) {
+    if (!content) return;
+    var meta = document.querySelector('meta[' + attribute + '="' + cssEscape(key) + '"]');
+    if (!meta) {
+      meta = document.createElement("meta");
+      meta.setAttribute(attribute, key);
+      document.head.appendChild(meta);
+    }
+    meta.setAttribute("content", content);
+  }
+
+  function setJsonLd(id, data) {
+    var script = document.getElementById(id);
+    if (!script) {
+      script = document.createElement("script");
+      script.type = "application/ld+json";
+      script.id = id;
+      document.head.appendChild(script);
+    }
+    script.textContent = JSON.stringify(stripUndefined(data));
+  }
+
+  function stripUndefined(value) {
+    if (Array.isArray(value)) {
+      return value.map(stripUndefined).filter(function (item) {
+        return item !== undefined;
+      });
+    }
+    if (value && typeof value === "object") {
+      var clean = {};
+      Object.keys(value).forEach(function (key) {
+        var item = stripUndefined(value[key]);
+        if (item !== undefined) clean[key] = item;
+      });
+      return clean;
+    }
+    return value;
+  }
+
+  function siteUrl(path) {
+    var base = window.CONFIG && CONFIG.siteUrl ? CONFIG.siteUrl : "https://gtpcs.ca";
+    var value = String(path || "/");
+
+    if (/^https?:\/\//i.test(value)) return value;
+    return base.replace(/\/+$/, "") + "/" + value.replace(/^\/+/, "");
+  }
+
+  function cssEscape(value) {
+    if (window.CSS && window.CSS.escape) return window.CSS.escape(value);
+    return String(value).replace(/"/g, '\\"');
   }
 
   function escapeHtml(value) {
