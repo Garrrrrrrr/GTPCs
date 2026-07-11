@@ -15,7 +15,8 @@
       category: "All",
       status: "All",
       search: "",
-      sort: "newest"
+      sort: "newest",
+      showOutOfStock: false
     }
   };
   var STATIC_PAGES = ["request", "repair", "about", "privacy", "terms"];
@@ -447,6 +448,7 @@
     var statusFilter = document.getElementById("status-filter");
     var sortFilter = document.getElementById("sort-filter");
     var search = document.getElementById("search");
+    var showOutOfStockCheckbox = document.getElementById("show-out-of-stock");
 
     if (categoryParam) {
       state.filters.category = normalizeCategory(categoryParam);
@@ -480,6 +482,13 @@
         renderInventoryProducts();
       });
     }
+
+    if (showOutOfStockCheckbox) {
+      showOutOfStockCheckbox.addEventListener("change", function () {
+        state.filters.showOutOfStock = showOutOfStockCheckbox.checked;
+        renderInventoryProducts();
+      });
+    }
   }
 
   function renderInventoryProducts() {
@@ -492,6 +501,12 @@
         if (state.filters.category !== "All" && product.category !== state.filters.category) return false;
         if (state.filters.status !== "All" && product.status !== state.filters.status) return false;
         if (state.filters.search && !product.searchText.includes(state.filters.search)) return false;
+        
+        // Hide out-of-stock items by default unless checkbox is checked
+        if (!state.filters.showOutOfStock && (product.status === "Sold" || product.status === "Coming Soon")) {
+          return false;
+        }
+        
         return true;
       })
       .sort(sortProducts);
